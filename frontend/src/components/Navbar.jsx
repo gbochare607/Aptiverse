@@ -22,16 +22,22 @@ export default function Navbar() {
             <SignedIn>
                 <div className="hidden md:flex bg-gray-100 dark:bg-gray-800 p-1 rounded-full space-x-1">
                     <Link to="/dashboard" className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${location.pathname === '/dashboard'
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600'
                         }`}>
                         Dashboard
                     </Link>
                     <Link to="/competitions" className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${location.pathname === '/competitions'
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600'
                         }`}>
                         Competitions
+                    </Link>
+                    <Link to="/tests" className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${location.pathname === '/tests'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-indigo-600'
+                        }`}>
+                        Test Room
                     </Link>
                 </div>
             </SignedIn>

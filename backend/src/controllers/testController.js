@@ -36,9 +36,10 @@ exports.startTest = async (req, res) => {
             userId: req.user.id,
             testId: testId || null,
             type: testType,
+            duration: duration || null,
+            difficulty: difficulty || null,
             questions: questions.map(q => ({
                 questionId: q._id || q.questionId, // Handle aggregate result vs mongoose doc
-                // init other fields
             })),
             startTime: new Date()
         });
@@ -178,15 +179,22 @@ exports.submitTest = async (req, res) => {
     }
 };
 
-// @desc Create a Test (Institute)
+// @desc Create a Test or Competition (Institute)
 // @route POST /institutes/:id/create-test
 exports.createTest = async (req, res) => {
     try {
-        const { title, description, questions, duration, startTime, endTime } = req.body;
+        const {
+            title, description, questions, duration, startTime, endTime,
+            type, bannerUrl, prizes, rules
+        } = req.body;
+
         // Check institute role
         if (req.user.role !== 'institute' && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'Not authorized' });
         }
+
+        // Generate unique access code
+        const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
         const test = await Test.create({
             title,
@@ -196,10 +204,83 @@ exports.createTest = async (req, res) => {
             startTime,
             endTime,
             createdBy: req.user.id,
-            isPublic: true // or false
+            isPublic: true, // or false
+            type: type || 'test',
+            bannerUrl,
+            prizes,
+            rules,
+            accessCode
         });
 
         res.status(201).json(test);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc Get test by access code
+// @route GET /tests/code/:accessCode
+exports.getTestByCode = async (req, res) => {
+    try {
+        const { accessCode } = req.params;
+        const test = await Test.findOne({ accessCode }).select('-questions.correctOption'); // Hide answers? questions not populated yet..
+
+        if (!test) {
+            return res.status(404).json({ message: 'Invalid test code' });
+        }
+
+        // Populate question count without revealing questions if needed, or just basic info
+        // For preview, we just need title, description, duration, institute name
+        await test.populate('createdBy', 'name');
+
+        res.json(test);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc Get all active competitions
+// @route GET /tests/competitions
+exports.getCompetitions = async (req, res) => {
+    try {
+        const competitions = await Test.find({
+            type: 'competition',
+            // Optional: Filter by end time to show only upcoming/active?
+            // endTime: { $gte: new Date() } 
+        })
+            .sort({ startTime: 1 })
+            .populate('createdBy', 'name'); // Populate institute name
+
+        res.json(competitions);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc Get attempt details
+// @route GET /tests/attempts/:attemptId
+exports.getAttempt = async (req, res) => {
+    try {
+        const attempt = await Attempt.findById(req.params.attemptId).populate('questions.questionId');
+        if (!attempt) return res.status(404).json({ message: 'Attempt not found' });
+        if (attempt.userId.toString() !== req.user.id) return res.status(401).json({ message: 'Not authorized' });
+
+        const sanitizedQuestions = attempt.questions.map(aq => ({
+            questionId: aq.questionId.questionId,
+            _id: aq.questionId._id,
+            text: aq.questionId.text,
+            options: aq.questionId.options,
+        }));
+
+        res.json({
+            attemptId: attempt._id,
+            type: attempt.type,
+            title: attempt.type === 'practice' ? 'Practice Session' : 'Test',
+            duration: attempt.duration || 30,
+            questions: sanitizedQuestions,
+            status: attempt.status,
+            startTime: attempt.startTime
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

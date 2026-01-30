@@ -8,23 +8,27 @@ import {
     BoltIcon, // Goal
     ChatBubbleLeftRightIcon,
     ArrowRightIcon,
-    StarIcon
+    StarIcon,
+    ChevronRightIcon
 } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 
-const KPI = ({ icon: Icon, title, value, color, progress }) => (
-    <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 transition-colors">
-        <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-xl ${color}`}>
-                <Icon className="w-6 h-6 text-white" />
+// Icons need to be imported for SectionCard use below
+import { TrophyIcon, BuildingOfficeIcon, UserGroupIcon } from '@heroicons/react/24/solid';
+
+const KPI = ({ icon: Icon, title, value, color, progress, compact }) => (
+    <div className={`bg-white dark:bg-gray-800 ${compact ? 'p-2' : 'p-4'} rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 transition-colors`}>
+        <div className={`flex items-start justify-between ${compact ? 'mb-1' : 'mb-4'}`}>
+            <div className={`${compact ? 'p-1.5' : 'p-3'} rounded-xl ${color}`}>
+                <Icon className={`${compact ? 'w-4 h-4' : 'w-6 h-6'} text-white`} />
             </div>
         </div>
         <div>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
-            <h4 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</h4>
+            <p className={`${compact ? 'text-[10px]' : 'text-sm'} font-medium text-gray-500 dark:text-gray-400`}>{title}</p>
+            <h4 className={`${compact ? 'text-lg' : 'text-2xl'} font-bold text-gray-900 dark:text-white mt-0.5`}>{value}</h4>
         </div>
         {progress && (
-            <div className="mt-4">
+            <div className={`${compact ? 'mt-2' : 'mt-4'}`}>
                 <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${progress}%` }}></div>
                 </div>
@@ -33,20 +37,20 @@ const KPI = ({ icon: Icon, title, value, color, progress }) => (
     </div>
 );
 
-const SectionCard = ({ icon: Icon, title, desc, action, color, count }) => (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all relative overflow-hidden group">
+const SectionCard = ({ icon: Icon, title, desc, action, color, count, compact }) => (
+    <div className={`bg-white dark:bg-gray-800 ${compact ? 'p-3' : 'p-4'} rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all relative overflow-hidden group`}>
         <div className="relative z-10">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color}`}>
-                <Icon className="w-6 h-6 text-white" />
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${compact ? 'mb-2' : 'mb-4'} ${color}`}>
+                <Icon className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-6 h-10">{desc}</p>
+            <h3 className={`${compact ? 'text-sm' : 'text-lg'} font-bold text-gray-900 dark:text-white`}>{title}</h3>
+            <p className={`text-xs text-gray-500 dark:text-gray-400 mt-1 ${compact ? 'mb-2 h-8' : 'mb-6 h-10'}`}>{desc}</p>
 
             <div className="flex items-center justify-between">
-                <Link to={action} className="text-indigo-600 dark:text-indigo-400 font-medium text-sm flex items-center hover:opacity-80">
-                    Get Started <ArrowRightIcon className="w-4 h-4 ml-1" />
+                <Link to={action} className="text-indigo-600 dark:text-indigo-400 font-medium text-xs flex items-center hover:opacity-80">
+                    Get Started <ArrowRightIcon className="w-3 h-3 ml-1" />
                 </Link>
-                <span className="text-xs text-gray-400">{count} options</span>
+                <span className="text-[10px] text-gray-400">{count} options</span>
             </div>
         </div>
         {/* Rec Label */}
@@ -67,10 +71,6 @@ export default function Dashboard() {
             if (!isLoaded || !isSignedIn) return;
 
             try {
-                // TODO: Sync with backend. For now, fetch via Clerk ID if possible, or skip
-                // const { data: dashboardData } = await api.get(`/dashboard/${user.id}`);
-                // setData(dashboardData);
-
                 // Mock data fallback
                 setData({
                     stats: { testsTaken: 12, averageScore: 87, verifiedSkills: 3 },
@@ -89,116 +89,176 @@ export default function Dashboard() {
 
     return (
         <div className="pb-10">
-            {/* Welcome & AI Mentor Row */}
+            {/* Split Layout: Left Content (Hero + Paths) | Right Sidebar (Mentor + Activity) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                {/* Welcome & Stats */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-3xl p-8 relative overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
-                    {/* Decorative BG - Lighter in light mode */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/20 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
 
-                    <div className="relative z-10 flex justify-between items-start mb-8">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                                Good morning, {user?.firstName}! <span className="ml-2">👋</span>
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400 mt-1">Let's achieve new milestones today</p>
-                        </div>
-                        <div className="bg-indigo-50 dark:bg-gray-700 p-2 rounded-lg shadow-sm">
-                            <TrophyIcon className="w-6 h-6 text-yellow-500" />
-                        </div>
-                    </div>
+                {/* LEFT COLUMN - Span 2 */}
+                <div className="lg:col-span-2 space-y-3 flex flex-col h-full">
+                    {/* 1. Good Morning & Stats - SUPER COMPACT */}
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 relative overflow-hidden shadow-md border border-gray-100 dark:border-gray-700 flex-none">
+                        {/* Decorative BG */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/20 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                        <KPI icon={BoltIcon} title="Daily Goal" value="15/20" color="bg-blue-500" progress={75} />
-                        <KPI icon={CheckCircleIcon} title="Accuracy" value={`${data?.stats?.averageScore || 0}%`} color="bg-green-500" progress={data?.stats?.averageScore || 0} />
-                        <KPI icon={ClockIcon} title="Study Time" value="2.5h" color="bg-purple-500" progress={40} />
-                        <KPI icon={FireIcon} title="Streak" value="12 days" color="bg-orange-500" progress={100} />
-                    </div>
-                </div>
-
-                {/* AI Mentor Card */}
-                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-indigo-100 dark:border-gray-700 flex flex-col">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center">
-                            <div className="p-3 bg-indigo-600 rounded-xl mr-3 shadow-lg shadow-indigo-200 dark:shadow-none">
-                                <ChatBubbleLeftRightIcon className="w-6 h-6 text-white" />
-                            </div>
+                        <div className="relative z-10 flex justify-between items-start mb-2">
                             <div>
-                                <h3 className="font-bold text-gray-900 dark:text-white">AI Mentor</h3>
-                                <p className="text-xs text-gray-400">Smart insights</p>
+                                <h1 className="text-base font-bold text-gray-900 dark:text-white flex items-center">
+                                    Good morning, {user?.firstName}! <span className="ml-2">👋</span>
+                                </h1>
+                                <p className="text-[10px] text-gray-600 dark:text-gray-400">Let's achieve new milestones today</p>
                             </div>
-                        </div>
-                        <span className="px-2 py-1 bg-purple-100 text-purple-600 text-xs font-bold rounded-full"># Live</span>
-                    </div>
-
-                    <div className="flex-1 space-y-4">
-                        {/* Mock Recommendations from AI or fallback */}
-                        <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                            <p className="text-sm font-semibold text-gray-800 dark:text-white mb-2">• Master Data Structures</p>
-                            <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">Medium</span>
-                                <span>94% match</span>
-                            </div>
-                            <div className="mt-2 h-1 w-full bg-gray-200 dark:bg-gray-600 rounded-full">
-                                <div className="h-full bg-indigo-500 w-[94%] rounded-full"></div>
+                            <div className="bg-indigo-50 dark:bg-gray-700 p-1 rounded-lg shadow-sm">
+                                <TrophyIcon className="w-3 h-3 text-yellow-500" />
                             </div>
                         </div>
 
-                        <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-                            <p className="text-sm font-semibold text-gray-800 dark:text-white mb-2">• Quant Enhancement</p>
-                            <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded">Easy</span>
-                                <span>88% match</span>
-                            </div>
-                            <div className="mt-2 h-1 w-full bg-gray-200 dark:bg-gray-600 rounded-full">
-                                <div className="h-full bg-indigo-500 w-[88%] rounded-full"></div>
-                            </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 relative z-10">
+                            <KPI icon={BoltIcon} title="Daily Goal" value="15/20" color="bg-blue-500" progress={75} compact={true} />
+                            <KPI icon={CheckCircleIcon} title="Accuracy" value={`${data?.stats?.averageScore || 0}%`} color="bg-green-500" progress={data?.stats?.averageScore || 0} compact={true} />
+                            <KPI icon={ClockIcon} title="Time" value="2.5h" color="bg-purple-500" progress={40} compact={true} />
+                            <KPI icon={FireIcon} title="Streak" value="12" color="bg-orange-500" progress={100} compact={true} />
                         </div>
                     </div>
 
-                    <button className="mt-6 w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-indigo-200 dark:shadow-none">
-                        View Details
-                    </button>
+                    {/* 2. Learning Paths - MOVED HERE (2x2 Grid) */}
+                    <div className="flex-1 flex flex-col">
+                        <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">Learning Paths</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
+                            <SectionCard
+                                icon={BoltIcon}
+                                title="Aptitude Practice"
+                                desc="Topic-wise practice questions."
+                                action="/practice"
+                                color="bg-blue-500"
+                                count="2"
+                                compact={true}
+                            />
+                            <SectionCard
+                                icon={BuildingOfficeIcon}
+                                title="Company Assessment"
+                                desc="Tests for top product companies."
+                                action="/competitions"
+                                color="bg-green-500"
+                                count=">"
+                                compact={true}
+                            />
+                            <SectionCard
+                                icon={TrophyIcon}
+                                title="Exam Oriented"
+                                desc="Prep for CAT, GRE, GMAT."
+                                action="/competitions"
+                                color="bg-purple-500"
+                                count="6"
+                                compact={true}
+                            />
+                            <SectionCard
+                                icon={UserGroupIcon}
+                                title="Soft Skills"
+                                desc="Communication mastery."
+                                action="/study-room"
+                                color="bg-orange-500"
+                                count="5"
+                                compact={true}
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            {/* Learning Paths */}
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Learning Paths</h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6 font-medium">Choose your specialization and start learning</p>
+                {/* RIGHT COLUMN - Span 1 */}
+                <div className="space-y-5 flex flex-col h-full">
+                    {/* 3. AI Mentor - Existing */}
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col flex-1 min-h-[220px] max-h-[300px]">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-indigo-600 rounded-lg mr-3 shadow-lg shadow-indigo-200 dark:shadow-none">
+                                    <ChatBubbleLeftRightIcon className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white">AI Mentor</h3>
+                                    <p className="text-xs text-gray-400">Smart insights</p>
+                                </div>
+                            </div>
+                            <span className="px-2 py-0.5 bg-purple-100 text-purple-600 text-[10px] font-bold rounded-full"># Live</span>
+                        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                <SectionCard
-                    icon={BoltIcon}
-                    title="Aptitude Practice"
-                    desc="Build your fundamentals with topic-wise practice questions."
-                    action="/test/practice"
-                    color="bg-blue-500"
-                    count="2"
-                />
-                <SectionCard
-                    icon={BuildingOfficeIcon}
-                    title="Company Assessment"
-                    desc="Industry-specific tests for top product companies."
-                    action="/competitions"
-                    color="bg-green-500"
-                    count=">"
-                />
-                <SectionCard
-                    icon={TrophyIcon}
-                    title="Exam Oriented"
-                    desc="Competitive exam preparation for CAT, GRE, GMAT."
-                    action="/competitions"
-                    color="bg-purple-500"
-                    count="6"
-                />
-                <SectionCard
-                    icon={UserGroupIcon}
-                    title="Soft Skills"
-                    desc="Personal development and communication mastery."
-                    action="/study-room"
-                    color="bg-orange-500"
-                    count="5"
-                />
+                        <div className="flex-1 space-y-3 overflow-y-auto pr-1 custom-scrollbar">
+                            <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1">• Master Data Structures</p>
+                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                    <span className="bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded text-[10px]">Medium</span>
+                                    <span>94% match</span>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1">• Quant Enhancement</p>
+                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                    <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[10px]">Easy</span>
+                                    <span>88% match</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button className="mt-4 w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors shadow-md text-sm">
+                            Ask AI
+                        </button>
+                    </div>
+
+                    {/* 4. NEW Recent Activity */}
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col flex-1 min-h-[220px] max-h-[300px]">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-orange-500 rounded-lg mr-3 shadow-lg shadow-orange-200 dark:shadow-none">
+                                    <ClockIcon className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white">Recent Activity</h3>
+                                    <p className="text-xs text-gray-400">Continue learning</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 space-y-3">
+                            {/* Activity Item 1 */}
+                            <div className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors cursor-pointer">
+                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs mr-3">
+                                    QA
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Quantitative Aptitude</p>
+                                    <p className="text-xs text-gray-500">20 mins ago</p>
+                                </div>
+                                <div className="text-xs font-bold text-gray-900 dark:text-white">8/10</div>
+                            </div>
+
+                            {/* Activity Item 2 */}
+                            <div className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors cursor-pointer">
+                                <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-xs mr-3">
+                                    VR
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Verbal Reasoning</p>
+                                    <p className="text-xs text-gray-500">Yesterday</p>
+                                </div>
+                                <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                            </div>
+
+                            {/* Activity Item 3 */}
+                            <div className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors cursor-pointer">
+                                <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-xs mr-3">
+                                    LR
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Logical Reasoning</p>
+                                    <p className="text-xs text-gray-500">2 days ago</p>
+                                </div>
+                                <div className="text-xs font-bold text-gray-900 dark:text-white">Pending</div>
+                            </div>
+                        </div>
+
+                        <Link to="/analytics" className="mt-auto text-center text-sm text-indigo-600 font-medium hover:text-indigo-800">
+                            View all history
+                        </Link>
+                    </div>
+                </div>
             </div>
 
             {/* Chat Bubble Fixed */}
@@ -208,6 +268,3 @@ export default function Dashboard() {
         </div>
     );
 }
-
-// Icons imports helper since we need them in SectionCard
-import { TrophyIcon, BuildingOfficeIcon, UserGroupIcon } from '@heroicons/react/24/solid';

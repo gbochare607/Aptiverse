@@ -9,8 +9,14 @@ const testSchema = new mongoose.Schema({
     duration: Number, // in minutes
     startTime: Date,
     endTime: Date,
+
     accessCode: String, // for private tests
     isPublic: { type: Boolean, default: false },
+    type: { type: String, enum: ['practice', 'test', 'competition'], default: 'test' },
+    bannerUrl: String,
+    prizes: [String],
+    rules: String,
+    registrationCount: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -29,6 +35,8 @@ const attemptSchema = new mongoose.Schema({
     status: { type: String, enum: ['in-progress', 'completed'], default: 'in-progress' },
     score: Number,
     percentage: Number,
+    duration: Number, // custom duration for practice
+    difficulty: Number, // custom difficulty for practice
     startTime: { type: Date, default: Date.now },
     endTime: Date,
 });

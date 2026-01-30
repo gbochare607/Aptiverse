@@ -10,12 +10,14 @@ import AuthLayout from './layouts/AuthLayout';
 import TestRunner from './pages/TestRunner';
 import InstituteDashboard from './pages/InstituteDashboard';
 import CreateTest from './pages/CreateTest';
+import Tests from './pages/Tests';
+import Competitions from './pages/Competitions';
+import PracticeHub from './pages/PracticeHub';
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public */}
       {/* Public */}
       <Route path="/" element={
         <>
@@ -42,7 +44,9 @@ function AppRoutes() {
                 <Route element={<DashboardLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/study-room" element={<div>Study Room (Coming Soon)</div>} />
-                  <Route path="/competitions" element={<div>Competitions (Coming Soon)</div>} />
+                  <Route path="/competitions" element={<Competitions />} />
+                  <Route path="/practice" element={<PracticeHub />} />
+                  <Route path="/tests" element={<Tests />} />
                   <Route path="/analytics" element={<div>Analytics (Coming Soon)</div>} />
                   <Route path="/test/:testId" element={<TestRunner />} />
 

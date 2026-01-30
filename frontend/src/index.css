@@ -16,8 +16,16 @@
 }
 
 /* Base styles are light by default in Tailwind unless dark variant is used */
+/* Base styles */
 body {
-  @apply bg-gray-50 text-gray-900 transition-colors duration-200;
+  @apply bg-slate-50 text-gray-900 transition-colors duration-200;
+}
+
+/* Explicit Light Mode Override */
+:root:not(.dark) body {
+  background-color: #F8FAFC;
+  /* slate-50 */
+  color: #111827;
 }
 
 .dark body {

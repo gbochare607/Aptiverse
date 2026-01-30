@@ -4,51 +4,104 @@ import api from '../services/api';
 import QuestionCard from '../components/QuestionCard';
 
 export default function TestRunner() {
-    const { testId } = useParams(); // Might be 'practice' or real ID
+    const { testId } = useParams();
     const navigate = useNavigate();
+    const { getToken } = useAuth();
     const [loading, setLoading] = useState(true);
     const [questions, setQuestions] = useState([]);
     const [currentQIndex, setCurrentQIndex] = useState(0);
-    const [answers, setAnswers] = useState({}); // { qId: optionId }
+    const [answers, setAnswers] = useState({});
     const [attemptId, setAttemptId] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(null); // in seconds
+    const [testTitle, setTestTitle] = useState('Assessment');
 
     useEffect(() => {
-        const startTest = async () => {
+        const initializeTest = async () => {
             try {
-                // Mock start - usually navigate from a "Start" button which calls POST /tests/start first
-                // Here we assume we just landed here.
-                // We need to actually CALL start API.
+                const token = await getToken();
+                let attemptData;
 
-                // For demo, we default to 'practice' if no ID, or handle params
-                const response = await api.post('/tests/start', {
-                    testType: testId === 'practice' ? 'practice' : 'test',
-                    testId: testId !== 'practice' ? testId : undefined,
-                    // topic: 'Algebra' (optional)
-                });
+                try {
+                    // Try to fetch as existing attempt first
+                    const res = await api.get(`/tests/attempts/${testId}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    attemptData = res.data;
+                } catch (e) {
+                    // If not an attempt, start a new one (it's a Test ID)
+                    const res = await api.post('/tests/start', {
+                        testType: 'test',
+                        testId: testId
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
 
-                setAttemptId(response.data.attemptId);
-                setQuestions(response.data.questions);
+                    // Fetch the newly created attempt to get questions and duration
+                    const attemptRes = await api.get(`/tests/attempts/${res.data.attemptId}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    attemptData = attemptRes.data;
+                }
+
+                setAttemptId(attemptData.attemptId);
+                setQuestions(attemptData.questions);
+                setTestTitle(attemptData.title);
+
+                // Calculate time left
+                const start = new Date(attemptData.startTime).getTime();
+                const now = new Date().getTime();
+                const elapsedSeconds = Math.floor((now - start) / 1000);
+                const totalSeconds = attemptData.duration * 60;
+                setTimeLeft(Math.max(0, totalSeconds - elapsedSeconds));
+
                 setLoading(false);
             } catch (error) {
                 console.error(error);
-                alert('Failed to start test');
+                alert('Failed to initialize test. Make sure you are authorized.');
                 navigate('/dashboard');
             }
         };
-        startTest();
-    }, [testId, navigate]);
+        initializeTest();
+    }, [testId, navigate, getToken]);
+
+    // Timer logic
+    useEffect(() => {
+        if (timeLeft === null || timeLeft <= 0 || submitting) return;
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    handleSubmit(true); // Auto-submit
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft, submitting]);
+
+    const formatTime = (seconds) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
 
     const handleSelect = async (optionId) => {
         const currentQ = questions[currentQIndex];
-        setAnswers({ ...answers, [currentQ.questionId]: optionId });
+        setAnswers({ ...answers, [currentQ._id]: optionId });
 
-        // Save partial
         try {
-            await api.post(`/attempts/${attemptId}/answer`, {
-                questionId: currentQ.questionId, // Assuming backend expects string ID
+            const token = await getToken();
+            await api.post(`/tests/${attemptId}/answer`, {
+                questionId: currentQ._id,
                 selectedOption: optionId,
-                timeTaken: 10 // Mock
+                timeTaken: 10
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
         } catch (e) { console.error('Auto-save failed', e); }
     };
@@ -65,19 +118,14 @@ export default function TestRunner() {
         }
     };
 
-    const handleSubmit = async () => {
-        if (!window.confirm('Are you sure you want to finish?')) return;
+    const handleSubmit = async (isAuto = false) => {
+        if (!isAuto && !window.confirm('Are you sure you want to finish?')) return;
         setSubmitting(true);
         try {
-            await api.post(`/attempts/${attemptId}/submit`); // Wait, route was /tests/:attemptId/submit... let me check backend
-            // Backend: router.post('/:attemptId/submit', submitTest) in testController attached to... wait
-            // testRoutes has `startTest`
-            // attemptRoutes has `saveAnswer`
-            // I forgot to mount `submitTest` route in backend!
-            // No, I think I missed it in `testRoutes`. 
-            // Let me check `testController` exports. Yes `submitTest` is there.
-            // Let me check `testRoutes`.
-
+            const token = await getToken();
+            await api.post(`/tests/${attemptId}/submit`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             navigate('/dashboard');
         } catch (error) {
             console.error(error);
@@ -86,49 +134,78 @@ export default function TestRunner() {
         setSubmitting(false);
     };
 
-    if (loading) return <div className="p-10 text-center">Loading Test...</div>;
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+            <p className="text-gray-500 font-medium">Preparing your session...</p>
+        </div>
+    );
 
     const currentQ = questions[currentQIndex];
 
     return (
-        <div className="max-w-3xl mx-auto py-8 px-4">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Question {currentQIndex + 1} / {questions.length}</h1>
-                <div className="text-red-600 font-mono">Time: 10:00 (Mock)</div>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+            {/* Header / StatusBar */}
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
+                <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate max-w-[200px] sm:max-w-md">{testTitle}</h1>
+                        <p className="text-xs text-gray-500 font-medium">Question {currentQIndex + 1} of {questions.length}</p>
+                    </div>
+
+                    <div className={`px-4 py-2 rounded-xl font-mono text-lg font-bold flex items-center shadow-inner ${timeLeft < 300 ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-indigo-50 text-indigo-600'}`}>
+                        <ClockIcon2 className="w-5 h-5 mr-2" />
+                        {formatTime(timeLeft)}
+                    </div>
+                </div>
             </div>
 
-            <QuestionCard
-                question={currentQ}
-                selectedOption={answers[currentQ.questionId]}
-                onSelect={handleSelect}
-            />
+            <div className="max-w-3xl mx-auto py-8 px-4">
+                <QuestionCard
+                    question={currentQ}
+                    selectedOption={answers[currentQ._id]}
+                    onSelect={handleSelect}
+                />
 
-            <div className="mt-8 flex justify-between">
-                <button
-                    disabled={currentQIndex === 0}
-                    onClick={handlePrev}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                >
-                    Previous
-                </button>
+                <div className="mt-10 flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                    <button
+                        disabled={currentQIndex === 0}
+                        onClick={handlePrev}
+                        className="px-6 py-2.5 rounded-xl border-2 border-gray-100 dark:border-gray-700 font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-30 transition-all text-sm"
+                    >
+                        Previous
+                    </button>
 
-                {currentQIndex === questions.length - 1 ? (
-                    <button
-                        onClick={handleSubmit}
-                        disabled={submitting}
-                        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                    >
-                        {submitting ? 'Submitting...' : 'Submit Test'}
-                    </button>
-                ) : (
-                    <button
-                        onClick={handleNext}
-                        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                    >
-                        Next
-                    </button>
-                )}
+                    <div className="hidden sm:flex gap-1">
+                        {questions.map((_, i) => (
+                            <div key={i} className={`w-2 h-2 rounded-full ${i === currentQIndex ? 'bg-indigo-600' : answers[questions[i]._id] ? 'bg-green-400' : 'bg-gray-200 dark:bg-gray-700'}`} />
+                        ))}
+                    </div>
+
+                    {currentQIndex === questions.length - 1 ? (
+                        <button
+                            onClick={() => handleSubmit(false)}
+                            disabled={submitting}
+                            className="px-8 py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-none transition-all text-sm"
+                        >
+                            {submitting ? 'Submitting...' : 'Finish Test'}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleNext}
+                            className="px-8 py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-none transition-all text-sm"
+                        >
+                            Next Question
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
 }
+
+const ClockIcon2 = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
