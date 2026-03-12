@@ -6,23 +6,31 @@ const connectDB = require('./config/db');
 const app = express();
 
 // Middleware
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    if (req.headers.authorization) {
+        console.log(`[Request] Auth Header: Bearer ${req.headers.authorization.substring(7, 27)}...`);
+    } else {
+        console.log(`[Request] Auth Header: MISSING`);
+    }
+    next();
+});
 app.use(cors());
 app.use(express.json());
 
-// Connect Database
-connectDB();
+
 
 // Routes
-app.use('/auth', require('./routes/authRoutes'));
-app.use('/admin', require('./routes/adminRoutes'));
-app.use('/questions', require('./routes/questionRoutes'));
-app.use('/tests', require('./routes/testRoutes'));
-app.use('/attempts', require('./routes/attemptRoutes'));
-app.use('/api', require('./routes/dashboardRoutes')); // Mount dashboard under /api for now or /dashboard? User spec said GET /dashboard/:userId. Let's stick to /api to avoid root pollution or just use specific prefixes. Spec: GET /dashboard/:userId. So maybe `app.use('/', ...)`? No, unsafe. Let's use `app.use('/', require('./routes/dashboardRoutes'))` CAREFULLY or just specific paths.
-// Let's mount dashboardRoutes at root but ensure no conflict.
-// dashboardRoutes has /dashboard/:userId and /results/:userId.
-app.use('/', require('./routes/dashboardRoutes'));
-app.use('/institutes', require('./routes/instituteRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/questions', require('./routes/questionRoutes'));
+app.use('/api/tests', require('./routes/testRoutes'));
+app.use('/api/attempts', require('./routes/attemptRoutes'));
+app.use('/api/institutes', require('./routes/instituteRoutes'));
+app.use('/api/activities', require('./routes/activityRoutes'));
+app.use('/api/study-plan', require('./routes/studyPlanRoutes'));
+app.use('/api', require('./routes/dashboardRoutes'));
+app.use('/api/rooms', require('./routes/roomRoutes'));
 
 app.get('/', (req, res) => {
     res.send('API is running...');
@@ -30,6 +38,15 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+const startServer = async () => {
+    try {
+        await connectDB();
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (e) {
+        console.error("Failed to start server:", e);
+    }
+};
+
+startServer();

@@ -1,169 +1,182 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
+    RocketLaunchIcon,
     AcademicCapIcon,
-    ArrowRightIcon,
-    BoltIcon,
-    ChartBarIcon
+    ChartBarIcon,
+    BuildingLibraryIcon,
+    UserGroupIcon,
+    CheckBadgeIcon,
+    ArrowRightIcon
 } from '@heroicons/react/24/outline';
 
-const features = [
-    {
-        name: 'Personalized Learning Paths',
-        description: 'Our AI analyzes your performance to create a custom study plan that focuses on your weak areas.',
-        icon: BoltIcon,
-    },
-    {
-        name: 'Real-time Analytics',
-        description: 'Track your progress with detailed insights, accuracy reports, and skill mastery levels.',
-        icon: ChartBarIcon,
-    },
-    {
-        name: 'Industry Standard Tests',
-        description: 'Practice with questions curated from top company recruitment drives and competitive exams.',
-        icon: AcademicCapIcon,
-    },
-];
+const Background = () => (
+    <div className="absolute inset-0 z-0 overflow-hidden text-neutral-900/10 dark:text-neutral-100/10 pointer-events-none">
+        <svg className="absolute top-0 right-0 w-[100%] h-[100%] -translate-y-1/2 translate-x-1/2 opacity-30" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+                <pattern id="grid" width="4" height="4" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="1" fill="currentColor" />
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/20 rounded-full blur-[120px]" />
+        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 w-[30%] h-[30%] bg-blue-500/10 rounded-full blur-[100px]" />
+    </div>
+);
 
 export default function LandingPage() {
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 50);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
-        <div className="bg-white">
-            {/* Navigation */}
-            <nav className="relative z-50 flex items-center justify-between px-6 py-4 mx-auto max-w-7xl">
-                <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-lg">A</div>
-                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-indigo-600">AptiVerse</span>
-                </div>
-                <div className="hidden md:flex space-x-8">
-                    <a href="#features" className="text-sm font-medium text-gray-500 hover:text-gray-900">Features</a>
-                    <a href="#about" className="text-sm font-medium text-gray-500 hover:text-gray-900">About</a>
-                    <a href="#testimonials" className="text-sm font-medium text-gray-500 hover:text-gray-900">Success Stories</a>
-                </div>
-                <div className="flex items-center space-x-4">
-                    <Link to="/login?role=student" className="text-sm font-medium text-gray-500 hover:text-gray-900">Log in</Link>
-                    <Link to="/register?role=student" className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-full hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
-                        Get Started
-                    </Link>
+        <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-indigo-500/30 font-sans">
+            <Background />
+
+            {/* Navbar */}
+            <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#0A0A0A]/80 backdrop-blur-md border-b border-white/5 py-4' : 'bg-transparent py-6'}`}>
+                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg shadow-lg shadow-indigo-500/20">
+                            <RocketLaunchIcon className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                            AptiVerse
+                        </span>
+                    </div>
+
+                    <div className="hidden md:flex items-center gap-8">
+                        <a href="#features" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Features</a>
+                        <a href="#about" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">About</a>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <Link to="/login" className="hidden md:flex text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                            Log In
+                        </Link>
+                        <Link to="/register" className="px-5 py-2.5 text-sm font-medium bg-white text-black rounded-full hover:bg-gray-100 transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                            Get Started
+                        </Link>
+                    </div>
                 </div>
             </nav>
 
             {/* Hero Section */}
-            <div className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
-                <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
-                        <div className="md:max-w-2xl md:mx-auto lg:col-span-6 text-center lg:text-left">
-                            <span className="inline-block py-1 px-3 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold mb-6 tracking-wide uppercase">
-                                AI-Powered Aptitude Platform
+            <main className="relative z-10 pt-32 pb-20 px-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex flex-col items-center text-center mb-16">
+
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-6 animate-fade-in-up">
+                            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                            Next Gen Aptitude Training
+                        </div>
+
+                        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
+                            Master Your Future with <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 animate-gradient-x">
+                                Artificial Intelligence
                             </span>
-                            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl mb-6">
-                                Master your skills with <span className="text-indigo-600">Personalized AI</span>
-                            </h1>
-                            <p className="mt-4 text-lg text-gray-500 mb-8 leading-relaxed">
-                                Stop practicing blindly. AptiVerse uses advanced AI to identify your gaps and provides a tailored learning journey to crack your dream job.
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                                <Link to="/login?role=student" className="flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-transform transform hover:-translate-y-1">
-                                    Student Login <ArrowRightIcon className="w-5 h-5 ml-2" />
-                                </Link>
-                                <Link to="/login?role=institute" className="flex items-center justify-center px-8 py-4 text-base font-bold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:text-indigo-600 transition-colors">
-                                    Institute Login
-                                </Link>
-                            </div>
-                            <div className="mt-8 flex items-center justify-center lg:justify-start space-x-4 text-sm text-gray-400">
-                                <span className="flex items-center"><BoltIcon className="w-4 h-4 mr-1 text-green-500" /> Free Trial</span>
-                                <span className="flex items-center"><UserGroupIcon className="w-4 h-4 mr-1 text-blue-500" /> 10k+ Students</span>
-                            </div>
-                        </div>
+                        </h1>
 
-                        <div className="mt-16 lg:mt-0 lg:col-span-6 relative">
-                            {/* Decorative Background Blob */}
-                            <div className="absolute -top-20 -right-20 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-                            <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
-
-                            {/* Glassmorphism Card */}
-                            <div className="relative bg-white/60 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-6 sm:p-10 transform rotate-2 hover:rotate-0 transition-transform duration-500">
-                                <div className="flex items-center justify-between mb-8">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Your Current Level</p>
-                                        <h3 className="text-2xl font-bold text-gray-800">Advanced</h3>
-                                    </div>
-                                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                                        <AcademicCapIcon className="w-6 h-6" />
-                                    </div>
-                                </div>
-
-                                {/* Skill Bars */}
-                                <div className="space-y-6">
-                                    <div>
-                                        <div className="flex justify-between text-sm mb-2">
-                                            <span className="font-semibold text-gray-700">Quantitative Aptitude</span>
-                                            <span className="text-indigo-600 font-bold">85%</span>
-                                        </div>
-                                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-indigo-500 w-[85%] rounded-full"></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="flex justify-between text-sm mb-2">
-                                            <span className="font-semibold text-gray-700">Logical Reasoning</span>
-                                            <span className="text-indigo-600 font-bold">92%</span>
-                                        </div>
-                                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-indigo-500 w-[92%] rounded-full"></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="flex justify-between text-sm mb-2">
-                                            <span className="font-semibold text-gray-700">Verbal Ability</span>
-                                            <span className="text-indigo-600 font-bold">78%</span>
-                                        </div>
-                                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-indigo-500 w-[78%] rounded-full"></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
-                                    <div className="flex -space-x-2">
-                                        {[1, 2, 3].map(i => (
-                                            <div key={i} className={`w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs`}>User</div>
-                                        ))}
-                                    </div>
-                                    <p className="text-sm text-gray-500">Join top performers</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Features Section */}
-            <div id="features" className="py-20 bg-gray-50 relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="text-center mb-16">
-                        <h2 className="text-base text-indigo-600 font-semibold tracking-wide uppercase">Features</h2>
-                        <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                            Everything you need to excel
+                        <p className="max-w-2xl text-lg text-gray-400 mb-10 leading-relaxed">
+                            The ultimate platform for students to excel in career assessments and for institutes to drive placement success through data-driven insights.
                         </p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {features.map((feature) => (
-                            <div key={feature.name} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                                <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-6">
-                                    <feature.icon className="w-6 h-6" />
+
+                    {/* Dual Login/Entry Options */}
+                    <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-24">
+                        {/* Student Card */}
+                        <div className="group relative p-8 rounded-3xl bg-gradient-to-b from-white/5 to-white/[0.02] border border-white/10 hover:border-indigo-500/50 transition-all duration-300 overflow-hidden">
+                            <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none blur-2xl" />
+
+                            <div className="relative z-10 flex flex-col h-full">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 flex items-center justify-center mb-6 text-indigo-400 group-hover:scale-110 transition-transform duration-300">
+                                    <AcademicCapIcon className="w-7 h-7" />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.name}</h3>
-                                <p className="text-gray-500 leading-relaxed">
-                                    {feature.description}
+                                <h2 className="text-2xl font-bold mb-3">For Students</h2>
+                                <p className="text-gray-400 mb-8 flex-grow">
+                                    Adaptive practice tests, AI-driven performance analysis, and personalized learning paths to crack your dream job.
                                 </p>
+                                <Link to="/login?role=student" className="flex items-center justify-between w-full px-6 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-all group-hover:shadow-[0_0_30px_rgba(79,70,229,0.3)]">
+                                    Student Login
+                                    <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                                <div className="mt-4 text-center">
+                                    <Link to="/register" className="text-sm text-gray-500 hover:text-indigo-400 transition-colors">
+                                        New here? Create Account
+                                    </Link>
+                                </div>
                             </div>
-                        ))}
+                        </div>
+
+                        {/* Institute Card */}
+                        <div className="group relative p-8 rounded-3xl bg-gradient-to-b from-white/5 to-white/[0.02] border border-white/10 hover:border-purple-500/50 transition-all duration-300 overflow-hidden">
+                            <div className="absolute inset-0 bg-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none blur-2xl" />
+
+                            <div className="relative z-10 flex flex-col h-full">
+                                <div className="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center mb-6 text-purple-400 group-hover:scale-110 transition-transform duration-300">
+                                    <BuildingLibraryIcon className="w-7 h-7" />
+                                </div>
+                                <h2 className="text-2xl font-bold mb-3">For Institutes</h2>
+                                <p className="text-gray-400 mb-8 flex-grow">
+                                    Comprehensive dashboards, student tracking, bulk test creation, and placement analytics to boost success rates.
+                                </p>
+                                <Link to="/login?role=institute" className="flex items-center justify-between w-full px-6 py-4 bg-purple-600 hover:bg-purple-500 rounded-xl font-semibold transition-all group-hover:shadow-[0_0_30px_rgba(147,51,234,0.3)]">
+                                    Institute Login
+                                    <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                                <div className="mt-4 text-center">
+                                    <span className="text-sm text-gray-500 cursor-not-allowed">
+                                        Request Access
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stats / Social Proof */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-10 border-y border-white/5 bg-white/[0.01]">
+                        <StatItem label="Active Students" value="10k+" />
+                        <StatItem label="Questions Attempted" value="1M+" />
+                        <StatItem label="Partner Institutes" value="50+" />
+                        <StatItem label="Success Rate" value="92%" />
+                    </div>
+
+                </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="border-t border-white/10 bg-[#050505] py-12 px-6">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <RocketLaunchIcon className="w-5 h-5 text-gray-400" />
+                        <span className="text-gray-400 font-semibold">AptiVerse</span>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                        &copy; {new Date().getFullYear()} AptiVerse Inc. All rights reserved.
+                    </div>
+                    <div className="flex gap-6">
+                        <a href="#" className="text-gray-500 hover:text-white transition-colors">Privacy</a>
+                        <a href="#" className="text-gray-500 hover:text-white transition-colors">Terms</a>
+                        <a href="#" className="text-gray-500 hover:text-white transition-colors">Contact</a>
                     </div>
                 </div>
-            </div>
+            </footer>
         </div>
     );
 }
 
-// Helper icon import (duplicated in file but needed for standalone component)
-import { UserGroupIcon } from '@heroicons/react/24/solid';
+function StatItem({ value, label }) {
+    return (
+        <div className="text-center">
+            <div className="text-3xl font-bold text-white mb-1">{value}</div>
+            <div className="text-sm text-gray-500 uppercase tracking-wider font-medium">{label}</div>
+        </div>
+    );
+}

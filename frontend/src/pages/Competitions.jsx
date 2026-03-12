@@ -9,7 +9,7 @@ export default function Competitions() {
     const { getToken } = useAuth();
 
     // Get API URL from env or default
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const API_URL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         const fetchCompetitions = async () => {

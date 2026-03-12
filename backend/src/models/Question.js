@@ -18,7 +18,23 @@ const questionSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    explanation: {
+        type: String,
+        default: 'Detailed explanation not available.'
+    },
     topics: [String],
+    category: {
+        type: String,
+        index: true
+    },
+    company: {
+        type: [String],
+        index: true
+    },
+    exam: {
+        type: [String],
+        index: true
+    },
     difficulty: {
         type: Number,
         min: 0,

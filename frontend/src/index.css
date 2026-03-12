@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary: #4F46E5;
   --color-secondary: #10B981;
   --color-dark: #111827;
 }
-
 
 :root {
   color-scheme: light;
@@ -15,19 +16,59 @@
   color-scheme: dark;
 }
 
-/* Base styles are light by default in Tailwind unless dark variant is used */
-/* Base styles */
 body {
-  @apply bg-slate-50 text-gray-900 transition-colors duration-200;
-}
-
-/* Explicit Light Mode Override */
-:root:not(.dark) body {
-  background-color: #F8FAFC;
-  /* slate-50 */
-  color: #111827;
+  @apply text-slate-900 transition-colors duration-200;
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 50%, #F5F3FF 100%);
+  min-height: 100vh;
+  /* Rich Gradient: Indigo -> Blue -> Purple */
 }
 
 .dark body {
-  @apply bg-gray-900 text-white;
+  @apply bg-[#020617] text-white;
+  background: #020617 !important;
+}
+
+/* Glass effect for light mode */
+.glass-light {
+  @apply bg-white/70 backdrop-blur-md border border-slate-200/50 shadow-sm;
+}
+
+/* Glass effect for dark mode */
+.glass-dark {
+  @apply bg-slate-900/70 backdrop-blur-md border border-white/10 shadow-xl;
+}
+
+/* Custom Scrollbar for better UI */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full border-4 border-transparent bg-clip-padding;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-indigo-400 dark:bg-indigo-600;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }

@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
         match: [
-            /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+            /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/,
             'Please fill a valid email address',
         ],
     },
@@ -42,11 +42,16 @@ const userSchema = new mongoose.Schema({
 
 // Encrypt password using bcrypt
 userSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) {
-        next();
+    if (!this.isModified('password') || !this.password) {
+        return next();
     }
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (err) {
+        next(err);
+    }
 });
 
 // Match user entered password to hashed password in database

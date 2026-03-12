@@ -32,7 +32,20 @@ export default function Tests() {
                 }
             }
         };
-        if (user) checkRole();
+
+        const fetchJoinedRooms = async () => {
+             try {
+                 const { data } = await api.get('/rooms/student');
+                 setJoinedItems(data);
+             } catch (e) {
+                 console.error("Failed to fetch joined rooms", e);
+             }
+        };
+
+        if (user) {
+            checkRole();
+            fetchJoinedRooms();
+        }
     }, [user, getToken]);
 
     const handleJoin = async (e, code, type) => {
@@ -42,11 +55,25 @@ export default function Tests() {
 
         try {
             const token = await getToken();
-            const res = await api.get(`/tests/code/${code.trim().toUpperCase()}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const test = res.data;
-            navigate(`/test/${test._id}`);
+            if (type === 'room') {
+                await api.post('/rooms/join', { code: code.trim().toUpperCase() }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                // Refresh list and optionally redirect
+                const { data } = await api.get('/rooms/student');
+                setJoinedItems(data);
+                const newRoom = data.find(r => r.code === code.trim().toUpperCase());
+                if (newRoom) {
+                    navigate(`/student/room/${newRoom._id}`);
+                }
+            } else {
+                const res = await api.get(`/tests/code/${code.trim().toUpperCase()}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const test = res.data;
+                navigate(`/test/${test._id}`);
+            }
         } catch (err) {
             setError(err.response?.data?.message || `Invalid ${type} code`);
         }
@@ -146,11 +173,22 @@ export default function Tests() {
                             <LockClosedIcon className="w-8 h-8 text-gray-300" />
                         </div>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">No joined items yet</h3>
-                        <p className="text-gray-500 max-w-xs mx-auto mb-6">Enter an access code above to join a test room or individual assessment.</p>
+                        <p className="text-gray-500 max-w-xs mx-auto mb-6">Enter an access code above to join a test room.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Assessments would go here */}
+                        {joinedItems.map(room => (
+                            <div key={room._id} 
+                                onClick={() => navigate(`/student/room/${room._id}`)}
+                                className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{room.name}</h3>
+                                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{room.description || 'No description'}</p>
+                                <div className="flex items-center justify-between text-xs font-semibold">
+                                    <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Code: {room.code}</span>
+                                    <span className="text-gray-500">{room.tests.length} Active Tests</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

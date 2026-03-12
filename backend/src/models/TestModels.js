@@ -37,6 +37,10 @@ const attemptSchema = new mongoose.Schema({
     percentage: Number,
     duration: Number, // custom duration for practice
     difficulty: Number, // custom difficulty for practice
+    practiceTopic: String,
+    practiceCompany: String,
+    practiceExam: String,
+    practiceCategory: String,
     startTime: { type: Date, default: Date.now },
     endTime: Date,
 });

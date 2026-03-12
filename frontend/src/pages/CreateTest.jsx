@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,6 +11,20 @@ export default function CreateTest() {
         duration: 30,
     });
     const [createdTest, setCreatedTest] = useState(null);
+    const [rooms, setRooms] = useState([]);
+    const [selectedRoomId, setSelectedRoomId] = useState('');
+
+    useEffect(() => {
+        const fetchRooms = async () => {
+            try {
+                const { data } = await api.get('/rooms/institute');
+                setRooms(data);
+            } catch (err) {
+                console.error("Failed to fetch rooms for dropdown", err);
+            }
+        };
+        fetchRooms();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,6 +35,12 @@ export default function CreateTest() {
                 startTime: new Date(),
                 endTime: new Date(Date.now() + 86400000 * 7), // 7 days
             });
+            
+            // If room assigned, link it
+            if (selectedRoomId) {
+                await api.post(`/rooms/institute/${selectedRoomId}/tests`, { testId: test._id });
+            }
+
             setCreatedTest(test);
         } catch (e) {
             console.error(e);
@@ -98,6 +118,19 @@ export default function CreateTest() {
                         value={formData.duration}
                         onChange={e => setFormData({ ...formData, duration: e.target.value })}
                     />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Assign to Room (Optional)</label>
+                    <select
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+                        value={selectedRoomId}
+                        onChange={e => setSelectedRoomId(e.target.value)}
+                    >
+                        <option value="">-- No Room (Standalone Test) --</option>
+                        {rooms.map(room => (
+                            <option key={room._id} value={room._id}>{room.name} ({room.code})</option>
+                        ))}
+                    </select>
                 </div>
 
                 <p className="text-sm text-gray-500">
