@@ -62,42 +62,68 @@ function AdminRoute({ children }) {
 
 function SmartRedirect() {
   const { user, isLoaded } = useUser();
-  
-  if (!isLoaded) return null;
 
-  const role = (user?.publicMetadata?.role || user?.unsafeMetadata?.role || '').toLowerCase();
-  const isInstitute = role === 'institute' || localStorage.getItem('userRole') === 'institute';
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
 
-  return <Navigate to={isInstitute ? "/institute-dashboard" : "/dashboard"} replace />;
+  const role = (
+    user?.publicMetadata?.role ||
+    user?.unsafeMetadata?.role ||
+    localStorage.getItem("requestedRole") ||
+    localStorage.getItem("userRole") ||
+    ""
+  ).toLowerCase();
+
+  if (role === "institute") {
+    return <Navigate to="/institute-dashboard" replace />;
+  }
+
+  return <Navigate to="/dashboard" replace />;
 }
 
 function AppRoutes() {
   const { user, isLoaded, isSignedIn } = useUser();
-
   useEffect(() => {
-    if (isLoaded && isSignedIn && user) {
-      const currentRole = (user.publicMetadata?.role || user.unsafeMetadata?.role || '').toLowerCase();
-      const requestedRole = localStorage.getItem('requestedRole');
+  if (!isLoaded || !isSignedIn || !user) return;
 
-      if (!currentRole && requestedRole) {
-        console.log("Setting user role to requestedRole:", requestedRole);
-        user.update({
-          unsafeMetadata: {
-            ...user.unsafeMetadata,
-            role: requestedRole
-          }
-        }).then(() => {
-          localStorage.setItem('userRole', requestedRole);
-          localStorage.removeItem('requestedRole');
-          console.log("Clerk unsafeMetadata role updated successfully.");
-        }).catch(err => {
-          console.error("Failed to update Clerk user metadata:", err);
-        });
-      } else if (currentRole) {
-        localStorage.setItem('userRole', currentRole);
-      }
-    }
-  }, [isLoaded, isSignedIn, user]);
+  const currentRole = (
+    user.publicMetadata?.role ||
+    user.unsafeMetadata?.role ||
+    ""
+  ).toLowerCase();
+
+  const requestedRole = (
+    localStorage.getItem("requestedRole") || ""
+  ).toLowerCase();
+
+  // Save existing role
+  if (currentRole) {
+    localStorage.setItem("userRole", currentRole);
+    return;
+  }
+
+  // First login
+  if (requestedRole) {
+    localStorage.setItem("userRole", requestedRole);
+
+    user
+      .update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          role: requestedRole,
+        },
+      })
+      .then(() => {
+        console.log("Role saved:", requestedRole);
+      })
+      .catch((err) => {
+        console.error("Role update failed:", err);
+      });
+  }
+}, [isLoaded, isSignedIn, user]);
+  
+  
 
   return (
     <Routes>

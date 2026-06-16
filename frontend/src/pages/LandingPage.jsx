@@ -21,7 +21,7 @@ export default function LandingPage() {
     const [scrolled, setScrolled] = useState(false);
     const [selectedOption, setSelectedOption] = useState(null);
     const [demoScore, setDemoScore] = useState(null);
-    
+
     // Room Lobbies state
     const [rooms, setRooms] = useState([
         { id: 1, name: 'TCS Digital Mock Sprint', active: 4, max: 5, time: '3m ago' },
@@ -62,29 +62,28 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen bg-[#030712] text-slate-100 selection:bg-indigo-500/30 font-sans overflow-x-hidden relative">
-            
+
             {/* High-Fidelity Background FX */}
             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
                 {/* Glowing orbs */}
                 <div className="absolute top-[-15%] left-[-15%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[140px] animate-pulse-glow" />
                 <div className="absolute top-[40%] right-[-15%] w-[600px] h-[600px] bg-purple-600/8 rounded-full blur-[140px] animate-pulse-glow" />
                 <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px]" />
-                
+
                 {/* Grid overlays */}
                 <div className="absolute inset-0 bg-grid-pattern opacity-[0.25] pointer-events-none" />
                 <div className="absolute inset-0 bg-dot-pattern opacity-[0.2] pointer-events-none" />
-                
+
                 {/* Visual horizontal separator line */}
                 <div className="absolute top-[100vh] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
             </div>
 
             {/* Premium Sticky Header */}
             <header className="fixed top-0 w-full z-50 transition-all duration-500 pt-5 px-6">
-                <div className={`max-w-5xl mx-auto px-6 py-2.5 rounded-full transition-all duration-300 flex items-center justify-between ${
-                    scrolled 
-                    ? 'bg-slate-950/65 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]' 
+                <div className={`max-w-5xl mx-auto px-6 py-2.5 rounded-full transition-all duration-300 flex items-center justify-between ${scrolled
+                    ? 'bg-slate-950/65 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]'
                     : 'bg-transparent border border-transparent'
-                }`}>
+                    }`}>
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/25">
                             <RocketLaunchIcon className="w-5 h-5 text-white" />
@@ -116,7 +115,7 @@ export default function LandingPage() {
 
             {/* Hero Section */}
             <section className="relative z-10 pt-44 pb-24 px-6 max-w-6xl mx-auto flex flex-col items-center">
-                
+
                 {/* Premium Spinning Tag */}
                 <div className="relative p-[1px] rounded-full overflow-hidden inline-flex items-center mb-8 animate-fade-in-up">
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-rotate-gradient pointer-events-none" />
@@ -151,7 +150,7 @@ export default function LandingPage() {
 
                 {/* Platform Overview Bento Grid */}
                 <div id="bento" className="w-full space-y-12">
-                    
+
                     {/* Header for Grid */}
                     <div className="text-center max-w-2xl mx-auto space-y-3">
                         <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Platform Architecture</h2>
@@ -162,11 +161,11 @@ export default function LandingPage() {
 
                     {/* Bento Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                        
+
                         {/* Bento Item 1: Adaptive Testing (Col-span 2, Row-span 2) */}
                         <div className="lg:col-span-2 bg-slate-950/45 border border-white/15 rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between group min-h-[420px]">
                             <div className="absolute top-0 right-0 w-[260px] h-[260px] bg-indigo-500/5 rounded-full blur-[90px] pointer-events-none" />
-                            
+
                             <div>
                                 <div className="flex items-center gap-2 mb-4">
                                     <div className="p-1.5 bg-indigo-500/10 rounded-lg text-indigo-400">
@@ -204,15 +203,13 @@ export default function LandingPage() {
                                         <button
                                             key={opt.key}
                                             onClick={() => handleOptionSelect(opt.key)}
-                                            className={`flex items-center gap-2.5 px-3 py-2.5 text-left text-xs font-semibold rounded-lg border transition-all ${
-                                                selectedOption === opt.key 
-                                                ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg' 
+                                            className={`flex items-center gap-2.5 px-3 py-2.5 text-left text-xs font-semibold rounded-lg border transition-all ${selectedOption === opt.key
+                                                ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg'
                                                 : 'bg-slate-900/50 border-white/5 text-slate-300 hover:bg-slate-900 hover:border-white/10'
-                                            }`}
+                                                }`}
                                         >
-                                            <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[9px] ${
-                                                selectedOption === opt.key ? 'bg-indigo-500 border-indigo-400 text-white' : 'border-slate-700 text-slate-500'
-                                            }`}>
+                                            <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-[9px] ${selectedOption === opt.key ? 'bg-indigo-500 border-indigo-400 text-white' : 'border-slate-700 text-slate-500'
+                                                }`}>
                                                 {opt.key}
                                             </span>
                                             {opt.text}
@@ -222,18 +219,17 @@ export default function LandingPage() {
 
                                 {/* Evaluation panel */}
                                 {demoScore && (
-                                    <div className={`p-3 rounded-xl border flex gap-2.5 items-start ${
-                                        demoScore === 'correct' 
-                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' 
+                                    <div className={`p-3 rounded-xl border flex gap-2.5 items-start ${demoScore === 'correct'
+                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
                                         : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
-                                    }`}>
+                                        }`}>
                                         <CheckCircleIcon className="w-4 h-4 shrink-0 mt-0.5" />
                                         <div className="text-[10px]">
                                             <p className="font-bold">{demoScore === 'correct' ? 'Correct Selection!' : 'Calculated Incorrectly'}</p>
                                             <p className="opacity-85 mt-0.5 leading-relaxed">
-                                                {demoScore === 'correct' 
-                                                ? 'Calculation: 120m / 6s = 20 m/s. 20 * (18/5) = 72 km/hr.' 
-                                                : 'Tip: Speed = Distance / Time. Check the units conversion factor (m/s to km/hr is * 18/5).'}
+                                                {demoScore === 'correct'
+                                                    ? 'Calculation: 120m / 6s = 20 m/s. 20 * (18/5) = 72 km/hr.'
+                                                    : 'Tip: Speed = Distance / Time. Check the units conversion factor (m/s to km/hr is * 18/5).'}
                                             </p>
                                         </div>
                                     </div>
@@ -262,14 +258,13 @@ export default function LandingPage() {
                             <div className="space-y-2 bg-slate-900/60 border border-white/5 p-4 rounded-2xl">
                                 <span className="text-[9px] uppercase font-bold tracking-widest text-slate-500 block mb-2">Active Rooms</span>
                                 {rooms.map((rm) => (
-                                    <button 
+                                    <button
                                         key={rm.id}
                                         onClick={() => setActiveRoomId(rm.id)}
-                                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
-                                            activeRoomId === rm.id 
-                                            ? 'bg-purple-600/10 border-purple-500/30 text-white' 
+                                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${activeRoomId === rm.id
+                                            ? 'bg-purple-600/10 border-purple-500/30 text-white'
                                             : 'bg-slate-900/30 border-transparent text-slate-400 hover:bg-slate-900'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="space-y-0.5">
                                             <p className="text-[11px] font-bold text-slate-200">{rm.name}</p>
@@ -305,7 +300,7 @@ export default function LandingPage() {
                                         <p className="text-[9px] leading-relaxed text-slate-300">
                                             📊 Accuracy in *Permutations & Combinations* is 40%. Ready to boost this section?
                                         </p>
-                                        <button 
+                                        <button
                                             onClick={startAiSprint}
                                             disabled={aiSprintLoading}
                                             className="w-full flex items-center justify-center gap-1.5 py-1.5 bg-pink-600 hover:bg-pink-500 disabled:bg-pink-850 text-white font-bold text-[9px] rounded-lg transition-all"
@@ -323,8 +318,8 @@ export default function LandingPage() {
                                         <p className="text-[10px] font-semibold text-slate-200">
                                             How many arrangements can be made out of the letters of the word 'COMMITTEE'?
                                         </p>
-                                        <button 
-                                            onClick={() => setAiStep(1)} 
+                                        <button
+                                            onClick={() => setAiStep(1)}
                                             className="text-[9px] text-slate-400 hover:text-white underline block"
                                         >
                                             Reset Demo
@@ -434,7 +429,7 @@ export default function LandingPage() {
                     {/* Card 1: Students */}
                     <div className="group relative p-8 rounded-3xl bg-slate-950/50 border border-white/10 hover:border-indigo-500/40 transition-all duration-300 flex flex-col justify-between">
                         <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none blur-3xl" />
-                        
+
                         <div>
                             <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-6 text-indigo-400 group-hover:scale-110 transition-all">
                                 <AcademicCapIcon className="w-6 h-6" />
@@ -446,12 +441,18 @@ export default function LandingPage() {
                         </div>
 
                         <div>
-                            <Link to="/login?role=student" className="flex items-center justify-between w-full px-5 py-3 bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-bold rounded-xl transition-all shadow-md">
+                            <Link
+                                to="/login?role=student"
+                                onClick={() => localStorage.setItem("requestedRole", "student")}
+                            > className="flex items-center justify-between w-full px-5 py-3 bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-bold rounded-xl transition-all shadow-md">
                                 Candidate Portal
                                 <ArrowRightIcon className="w-4 h-4" />
                             </Link>
                             <div className="mt-4 text-center">
-                                <Link to="/register?role=student" className="text-[10px] text-slate-500 hover:text-indigo-400 font-semibold transition-colors">
+                                <Link
+                                    to="/login?role=student"
+                                    onClick={() => localStorage.setItem("requestedRole", "student")}
+                                > className="text-[10px] text-slate-500 hover:text-indigo-400 font-semibold transition-colors">
                                     Need a practice account? Create one here &rarr;
                                 </Link>
                             </div>
@@ -461,7 +462,7 @@ export default function LandingPage() {
                     {/* Card 2: Institutes */}
                     <div className="group relative p-8 rounded-3xl bg-slate-950/50 border border-white/10 hover:border-purple-500/40 transition-all duration-300 flex flex-col justify-between">
                         <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none blur-3xl" />
-                        
+
                         <div>
                             <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 text-purple-400 group-hover:scale-110 transition-all">
                                 <BuildingLibraryIcon className="w-6 h-6" />
@@ -473,12 +474,18 @@ export default function LandingPage() {
                         </div>
 
                         <div>
-                            <Link to="/login?role=institute" className="flex items-center justify-between w-full px-5 py-3 bg-purple-650 hover:bg-purple-600 text-white text-xs font-bold rounded-xl transition-all shadow-md">
+                            <Link
+                                to="/login?role=institute"
+                                onClick={() => localStorage.setItem("requestedRole", "institute")}
+                            > className="flex items-center justify-between w-full px-5 py-3 bg-purple-650 hover:bg-purple-600 text-white text-xs font-bold rounded-xl transition-all shadow-md">
                                 Institution Console
                                 <ArrowRightIcon className="w-4 h-4" />
                             </Link>
                             <div className="mt-4 text-center">
-                                <Link to="/register?role=institute" className="text-[10px] text-slate-500 hover:text-purple-400 font-semibold transition-colors">
+                                <Link
+                                    to="/login?role=institute"
+                                    onClick={() => localStorage.setItem("requestedRole", "institute")}
+                                > className="text-[10px] text-slate-500 hover:text-purple-400 font-semibold transition-colors">
                                     Register your Institute Console &rarr;
                                 </Link>
                             </div>
@@ -489,12 +496,12 @@ export default function LandingPage() {
                 {/* Final Interactive CTA Banner */}
                 <div id="cta" className="w-full mt-36 max-w-4xl relative p-8 sm:p-12 rounded-3xl overflow-hidden border border-white/10 bg-slate-950/20 backdrop-blur-md text-center flex flex-col items-center">
                     <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none" />
-                    
+
                     <h3 className="text-2xl sm:text-4xl font-extrabold text-white mb-4">Accelerate Placement Readiness</h3>
                     <p className="max-w-md text-xs sm:text-sm text-slate-400 mb-8 leading-relaxed">
                         Master the recruitment algorithms. Set up your learning portfolio or configure your classroom pipeline in under 2 minutes.
                     </p>
-                    
+
                     <Link to="/register?role=student" className="px-8 py-3.5 bg-white text-slate-950 text-xs font-bold rounded-full hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all shadow-xl">
                         Register Account Now
                     </Link>
@@ -505,7 +512,7 @@ export default function LandingPage() {
             {/* Footer */}
             <footer className="border-t border-white/10 bg-[#01030b] py-16 px-6 relative z-10">
                 <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
-                    
+
                     {/* Brand column */}
                     <div className="md:col-span-2 space-y-4">
                         <div className="flex items-center gap-2.5">
