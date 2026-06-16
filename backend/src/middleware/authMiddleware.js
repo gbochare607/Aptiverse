@@ -44,13 +44,25 @@ const protect = [
                     clerkId,
                     name: clerkId === 'mock_dev_user_id' ? 'Dev User' : 'New User',
                     email: clerkId === 'mock_dev_user_id' ? 'dev@aptiverse.com' : `${clerkId}@clerk.local`,
-                    role: requestedRole
+                    role: requestedRole,
+                    approvalStatus: requestedRole === 'institute' ? 'pending' : 'not-applicable'
                 });
                 console.log(`[Auth] User created successfully: ${user._id}`);
-            } else if (req.headers['x-requested-role'] === 'institute' && user.role !== 'institute') {
-                console.log("[Auth] Upgrading user role to institute:", clerkId);
-                user.role = 'institute';
-                await user.save();
+            } else {
+                if (user.status === 'disabled') {
+                    console.log("[Auth] User account is disabled. Rejecting.");
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Your account has been disabled by the administrator.'
+                    });
+                }
+                
+                if (req.headers['x-requested-role'] === 'institute' && user.role !== 'institute') {
+                    console.log("[Auth] Upgrading user role to institute:", clerkId);
+                    user.role = 'institute';
+                    user.approvalStatus = 'pending';
+                    await user.save();
+                }
             }
 
             req.user = user;
@@ -76,6 +88,14 @@ const authorize = (...roles) => {
                 message: `User role ${req.user?.role} is not authorized`
             });
         }
+
+        // Block unapproved institutes from accessing institute endpoints
+        if (req.user.role === 'institute' && req.user.approvalStatus !== 'approved') {
+            return res.status(403).json({
+                message: 'Institute registration is pending review or rejected.'
+            });
+        }
+
         next();
     };
 };

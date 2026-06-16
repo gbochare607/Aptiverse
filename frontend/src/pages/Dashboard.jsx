@@ -77,6 +77,7 @@ export default function Dashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activities, setActivities] = useState([]);
+    const [aiInsights, setAiInsights] = useState(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const navigate = useNavigate();
     const { getToken } = useAuth();
@@ -114,6 +115,16 @@ export default function Dashboard() {
                     stats: { testsTaken: 0, averageScore: 0, verifiedSkills: 0, accuracy: 0 },
                     recommendations: []
                 });
+
+                // Fetch Performance Data for AI Mentor
+                try {
+                    const { data: perfData } = await api.get(`/performance/${user.id}?range=all`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setAiInsights(perfData?.stats?.aiInsights || null);
+                } catch (err) {
+                    console.error("Failed to fetch AI Insights", err);
+                }
             } catch (err) {
                 console.log(err);
             } finally {
@@ -215,6 +226,42 @@ export default function Dashboard() {
                                 />
                             </div>
                         </div>
+
+                        {/* 5. Previous Test Records */}
+                        <div className="flex-1 flex flex-col mt-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Previous Records</h2>
+                                <Link to="/profile" state={{ activeTab: 'performance' }} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">View All</Link>
+                            </div>
+                            <div className="bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 dark:border-white/10 p-4">
+                                {data?.recentActivity?.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {data.recentActivity.map((record) => (
+                                            <div key={record._id} className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                                        <CheckCircleIcon className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-900 dark:text-white">{record.testId?.title || 'Test Assessment'}</p>
+                                                        <p className="text-[10px] font-medium text-gray-500">{new Date(record.createdAt).toLocaleDateString()}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm font-black text-indigo-600 dark:text-indigo-400">{record.score} pts</p>
+                                                    <p className="text-[10px] font-bold text-gray-500">{Math.round((record.correctAnswers / record.totalQuestions) * 100)}% Accuracy</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-6">
+                                        <p className="text-sm font-bold text-gray-500">No previous records available.</p>
+                                        <button onClick={() => navigate('/tests')} className="mt-2 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700">Take a Test</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* RIGHT COLUMN - Span 1 */}
@@ -236,20 +283,23 @@ export default function Dashboard() {
                             </div>
 
                             <div className="flex-1 space-y-3 overflow-y-auto pr-1 custom-scrollbar">
-                                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
-                                    <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1">• Master Data Structures</p>
-                                    <div className="flex items-center justify-between text-xs text-gray-500">
-                                        <span className="bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded text-[10px]">Medium</span>
-                                        <span>94% match</span>
+                                {aiInsights?.recommendations?.length > 0 ? (
+                                    aiInsights.recommendations.slice(0, 2).map((rec, i) => (
+                                        <div key={rec.id || i} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
+                                            <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1">• {rec.title}</p>
+                                            <div className="flex items-center justify-between text-xs text-gray-500">
+                                                <span className={`px-1.5 py-0.5 rounded text-[10px] ${rec.type === 'theory' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
+                                                    {rec.type === 'theory' ? 'Theory' : 'Practice'}
+                                                </span>
+                                                <span>Duration: {rec.duration}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-4">
+                                        <p className="text-xs font-bold text-slate-400">Keep practicing to unlock insights!</p>
                                     </div>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
-                                    <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1">• Quant Enhancement</p>
-                                    <div className="flex items-center justify-between text-xs text-gray-500">
-                                        <span className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[10px]">Easy</span>
-                                        <span>88% match</span>
-                                    </div>
-                                </div>
+                                )}
                             </div>
 
                             <button

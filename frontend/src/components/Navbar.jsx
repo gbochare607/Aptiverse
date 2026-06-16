@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { BellIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -12,6 +12,18 @@ export default function Navbar() {
     const navigate = useNavigate();
     const { user } = useUser();
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    
+    const clerkHasInstitute = (user?.publicMetadata?.role || user?.unsafeMetadata?.role)?.toLowerCase() === 'institute';
+    const isInstitute = clerkHasInstitute || localStorage.getItem('userRole') === 'institute';
+
+    useEffect(() => {
+        if (clerkHasInstitute) {
+            localStorage.setItem('userRole', 'institute');
+        } else if (location.pathname === '/dashboard') {
+            // Explicitly on student dashboard, clear institute role if any
+            localStorage.removeItem('userRole');
+        }
+    }, [clerkHasInstitute, location.pathname]);
 
     return (
         <>
@@ -28,7 +40,7 @@ export default function Navbar() {
                 <SignedIn>
                     <div className="hidden md:flex bg-indigo-100/50 dark:bg-gray-800 p-1 rounded-full space-x-1 border border-white/40 dark:border-transparent backdrop-blur-md">
                         <Link 
-                            to={user?.publicMetadata?.role === 'institute' ? '/institute-dashboard' : '/dashboard'} 
+                            to={isInstitute ? '/institute-dashboard' : '/dashboard'} 
                             className={`px-6 py-2 rounded-full text-sm font-bold dark:font-medium transition-all ${(location.pathname === '/dashboard' || location.pathname === '/institute-dashboard')
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none'
                             : 'text-slate-900 dark:text-gray-300 hover:text-indigo-600'
@@ -36,7 +48,7 @@ export default function Navbar() {
                             Dashboard
                         </Link>
                         <Link 
-                            to={user?.publicMetadata?.role === 'institute' ? '/institute/competitions' : '/competitions'} 
+                            to={isInstitute ? '/institute/competitions' : '/competitions'} 
                             className={`px-6 py-2 rounded-full text-sm font-bold dark:font-medium transition-all ${(location.pathname === '/competitions' || location.pathname === '/institute/competitions')
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none'
                             : 'text-slate-900 dark:text-gray-300 hover:text-indigo-600'
@@ -44,7 +56,7 @@ export default function Navbar() {
                             Competitions
                         </Link>
                         <Link 
-                            to={user?.publicMetadata?.role === 'institute' ? '/institute/test-rooms' : '/tests'} 
+                            to={isInstitute ? '/institute/test-rooms' : '/tests'} 
                             className={`px-6 py-2 rounded-full text-sm font-bold dark:font-medium transition-all ${(location.pathname === '/tests' || location.pathname.startsWith('/institute/room') || location.pathname === '/institute/test-rooms')
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none'
                             : 'text-slate-900 dark:text-gray-300 hover:text-indigo-600'
@@ -59,7 +71,7 @@ export default function Navbar() {
                     <SignedIn>
                         <div className="hidden sm:flex items-center px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50">
                             <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-widest">
-                                {user?.publicMetadata?.role === 'institute' ? 'Institute' : 'Student'}
+                                {isInstitute ? 'Institute' : 'Student'}
                             </span>
                         </div>
                     </SignedIn>
@@ -78,15 +90,25 @@ export default function Navbar() {
                         </button>
 
                         <div className="ml-4">
-                            <Link to="/profile" className="block relative group">
-                                <div className="absolute -inset-0.5 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
-                                <img
-                                    src={user?.imageUrl}
-                                    alt="Profile"
-                                    className="relative w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 shadow-md group-hover:scale-105 transition-transform duration-300 object-cover"
-                                />
-                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
-                            </Link>
+                            {isInstitute ? (
+                                <div className="block relative group flex items-center justify-center">
+                                    <div className="absolute -inset-0 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+                                    <div className="relative w-10 h-10 border-2 border-white dark:border-gray-800 rounded-full shadow-md group-hover:scale-105 transition-transform duration-300 flex items-center justify-center bg-white dark:bg-gray-800 overflow-hidden">
+                                        <UserButton appearance={{ elements: { avatarBox: "w-full h-full" } }} />
+                                    </div>
+                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full pointer-events-none"></div>
+                                </div>
+                            ) : (
+                                <Link to="/profile" className="block relative group">
+                                    <div className="absolute -inset-0.5 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+                                    <img
+                                        src={user?.imageUrl}
+                                        alt="Profile"
+                                        className="relative w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 shadow-md group-hover:scale-105 transition-transform duration-300 object-cover"
+                                    />
+                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full pointer-events-none"></div>
+                                </Link>
+                            )}
                         </div>
                     </SignedIn>
 

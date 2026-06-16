@@ -6,11 +6,13 @@ const {
     submitTest,
     getCompetitions,
     getTestByCode,
-    getAttempt
+    getAttempt,
+    getUserAttempts
 } = require('../controllers/testController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/competitions', protect, getCompetitions);
+router.get('/my-attempts', protect, getUserAttempts);
 router.get('/code/:accessCode', protect, getTestByCode);
 router.post('/start', protect, startTest);
 router.get('/attempts/:attemptId', protect, getAttempt);

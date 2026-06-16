@@ -8,6 +8,17 @@ export default function Login() {
     const role = searchParams.get('role');
     const redirectUrl = role === 'institute' ? '/institute-dashboard' : '/dashboard';
 
+    useEffect(() => {
+        if (role) {
+            localStorage.setItem('requestedRole', role);
+            if (role === 'institute') {
+                localStorage.setItem('userRole', 'institute');
+            } else {
+                localStorage.setItem('userRole', 'student');
+            }
+        }
+    }, [role]);
+
     return (
         <div className="h-screen flex items-center justify-center bg-[#020617] relative overflow-hidden px-4">
 
@@ -43,7 +54,7 @@ export default function Login() {
                     <div className="absolute -top-20 -left-20 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/15 transition-all duration-500"></div>
 
                     <SignIn
-                        signUpUrl={role === 'institute' ? "/register?role=institute" : "/register"}
+                        signUpUrl={role === 'institute' ? "/register?role=institute" : "/register?role=student"}
                         forceRedirectUrl={redirectUrl}
                         appearance={{
                             layout: {
@@ -69,6 +80,18 @@ export default function Login() {
                             }
                         }}
                     />
+                </div>
+
+                <div className="mt-4 text-center">
+                    {role === 'institute' ? (
+                        <Link to="/login?role=student" className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+                            Are you a student? Login as Student
+                        </Link>
+                    ) : (
+                        <Link to="/login?role=institute" className="text-xs text-purple-400 hover:text-purple-300 font-semibold transition-colors">
+                            Are you an institute? Login as Institute
+                        </Link>
+                    )}
                 </div>
 
                 <p className="mt-4 text-center text-gray-600 text-[9px]">

@@ -20,7 +20,7 @@ export default function ChatPopup({ isOpen, onClose }) {
         }
     }, [messages]);
 
-    const handleSend = (e) => {
+    const handleSend = async (e) => {
         e.preventDefault();
         if (!input.trim()) return;
 
@@ -28,15 +28,38 @@ export default function ChatPopup({ isOpen, onClose }) {
         setMessages(prev => [...prev, newUserMsg]);
         setInput('');
 
-        // Simulate AI Response
-        setTimeout(() => {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDytPVXOANWt29GZPNh8F7j0-7GpUjZEmk`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ role: "user", parts: [{ text: input }] }]
+                })
+            });
+            const data = await response.json();
+            
+            let replyText = "I'm sorry, I couldn't process that request.";
+            if (data.error) {
+                console.error("Gemini API Error Detail:", data.error);
+                replyText = `API Error: ${data.error.message}`;
+            } else if (data.candidates && data.candidates.length > 0) {
+                replyText = data.candidates[0].content.parts[0].text;
+            }
+            
             const aiMsg = {
                 id: Date.now() + 1,
-                text: "That's a great question! I'm currently in 'UI Mode', but soon I'll be able to help you solve aptitude problems, analyze your performance, and suggest study plans. Keep practicing!",
+                text: replyText,
                 sender: 'ai'
             };
             setMessages(prev => [...prev, aiMsg]);
-        }, 1000);
+        } catch (error) {
+            console.error('Gemini API Error:', error);
+            setMessages(prev => [...prev, {
+                id: Date.now() + 1,
+                text: "Sorry, I'm having trouble connecting right now. Please try again later.",
+                sender: 'ai'
+            }]);
+        }
     };
 
     if (!isOpen) return null;

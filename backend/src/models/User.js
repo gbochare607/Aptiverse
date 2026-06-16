@@ -29,6 +29,16 @@ const userSchema = new mongoose.Schema({
         enum: ['student', 'institute', 'admin'],
         default: 'student',
     },
+    status: {
+        type: String,
+        enum: ['active', 'disabled'],
+        default: 'active',
+    },
+    approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected', 'not-applicable'],
+        default: 'not-applicable',
+    },
     // Optional fields for profile
     profile: {
         bio: String,

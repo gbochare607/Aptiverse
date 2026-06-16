@@ -7,12 +7,23 @@ export default function CreateTest() {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        questions: [],
-        duration: 30,
+        topic: 'Mixed', // Default topic
+        numberOfQuestions: 20, // Default count
+        duration: 30, // in minutes
+        expiryDays: 7, // days from now
     });
     const [createdTest, setCreatedTest] = useState(null);
+    const [creating, setCreating] = useState(false);
     const [rooms, setRooms] = useState([]);
     const [selectedRoomId, setSelectedRoomId] = useState('');
+
+    const CATEGORIES = [
+        "Mixed",
+        "Quantitative",
+        "Logical",
+        "Verbal",
+        "Data"
+    ];
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -28,12 +39,18 @@ export default function CreateTest() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setCreating(true);
         try {
             const { data: user } = await api.get('/auth/me');
             const { data: test } = await api.post(`/institutes/${user._id}/create-test`, {
-                ...formData,
+                title: formData.title,
+                description: formData.description,
+                topic: formData.topic,
+                numberOfQuestions: parseInt(formData.numberOfQuestions, 10),
+                duration: parseInt(formData.duration, 10),
                 startTime: new Date(),
-                endTime: new Date(Date.now() + 86400000 * 7), // 7 days
+                endTime: new Date(Date.now() + 86400000 * parseFloat(formData.expiryDays)),
+                type: 'test'
             });
             
             // If room assigned, link it
@@ -44,7 +61,9 @@ export default function CreateTest() {
             setCreatedTest(test);
         } catch (e) {
             console.error(e);
-            alert('Failed to create test');
+            alert('Failed to create test: ' + (e.response?.data?.message || e.message));
+        } finally {
+            setCreating(false);
         }
     };
 
@@ -88,58 +107,133 @@ export default function CreateTest() {
     }
 
     return (
-        <div className="max-w-2xl mx-auto py-8 px-4">
-            <h1 className="text-2xl font-bold mb-6">Create New Assessment</h1>
-            <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 shadow rounded-lg">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Test Title</label>
-                    <input
-                        type="text"
-                        required
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        value={formData.title}
-                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        value={formData.description}
-                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
-                    <input
-                        type="number"
-                        required
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        value={formData.duration}
-                        onChange={e => setFormData({ ...formData, duration: e.target.value })}
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Assign to Room (Optional)</label>
-                    <select
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
-                        value={selectedRoomId}
-                        onChange={e => setSelectedRoomId(e.target.value)}
-                    >
-                        <option value="">-- No Room (Standalone Test) --</option>
-                        {rooms.map(room => (
-                            <option key={room._id} value={room._id}>{room.name} ({room.code})</option>
-                        ))}
-                    </select>
-                </div>
-
-                <p className="text-sm text-gray-500">
-                    * Question selection is handled via CSV upload in the admin panel or added later. This creates the test shell.
+        <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8 bg-gray-50/50 dark:bg-transparent min-h-screen">
+            <div className="mb-8">
+                <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">Create Live Test</h1>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    Configure a new assessment. The system will automatically select random questions based on your criteria and generate a unique join code.
                 </p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-8 bg-white dark:bg-gray-800 p-8 shadow-sm border border-gray-100 dark:border-gray-700 rounded-2xl">
+                
+                {/* Basic Info */}
+                <div className="space-y-6">
+                    <h3 className="text-lg font-bold leading-6 text-gray-900 dark:text-white pb-3 border-b border-gray-200 dark:border-gray-700">Basic Information</h3>
+                    
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Test Title</label>
+                        <input
+                            type="text"
+                            required
+                            className="block w-full border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                            placeholder="e.g. Midterm Quantitative Assessment"
+                            value={formData.title}
+                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                        />
+                    </div>
+                    
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description (Optional)</label>
+                        <textarea
+                            className="block w-full border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                            placeholder="Instructions or details for the students..."
+                            rows="2"
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                        />
+                    </div>
+                </div>
 
-                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                    Create Test
-                </button>
+                {/* Test Configuration */}
+                <div className="space-y-6 pt-6">
+                    <h3 className="text-lg font-bold leading-6 text-gray-900 dark:text-white pb-3 border-b border-gray-200 dark:border-gray-700">Test Configuration</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Topic / Category</label>
+                            <select
+                                className="block w-full border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 dark:text-white"
+                                value={formData.topic}
+                                onChange={e => setFormData({ ...formData, topic: e.target.value })}
+                                required
+                            >
+                                {CATEGORIES.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                            <p className="mt-2 text-xs text-gray-500">System will pull random questions from this topic.</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Number of Questions</label>
+                            <input
+                                type="number"
+                                required
+                                min="1"
+                                max="100"
+                                className="block w-full border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                value={formData.numberOfQuestions}
+                                onChange={e => setFormData({ ...formData, numberOfQuestions: e.target.value })}
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Duration (minutes)</label>
+                            <input
+                                type="number"
+                                required
+                                min="1"
+                                className="block w-full border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                value={formData.duration}
+                                onChange={e => setFormData({ ...formData, duration: e.target.value })}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Test Expires In (Days)</label>
+                            <input
+                                type="number"
+                                required
+                                min="1"
+                                step="0.5"
+                                className="block w-full border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                value={formData.expiryDays}
+                                onChange={e => setFormData({ ...formData, expiryDays: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Assignment & Visibility */}
+                <div className="space-y-6 pt-6">
+                    <h3 className="text-lg font-bold leading-6 text-gray-900 dark:text-white pb-3 border-b border-gray-200 dark:border-gray-700">Assignment</h3>
+                    
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Assign to Test Room (Optional)</label>
+                        <select
+                            className="block w-full border border-gray-300 dark:border-gray-600 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 dark:text-white"
+                            value={selectedRoomId}
+                            onChange={e => setSelectedRoomId(e.target.value)}
+                        >
+                            <option value="">-- Standalone Test (No specific room) --</option>
+                            {rooms.map(room => (
+                                <option key={room._id} value={room._id}>{room.name} (Code: {room.code})</option>
+                            ))}
+                        </select>
+                        <p className="mt-2 text-xs text-gray-500">If unassigned, you can just share the generated Test Code directly with students.</p>
+                    </div>
+                </div>
+
+                <div className="pt-4">
+                    <button 
+                        type="submit" 
+                        disabled={creating}
+                        className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                    >
+                        {creating ? 'Generating Test...' : 'Create & Generate Code'}
+                    </button>
+                </div>
             </form>
         </div>
     );

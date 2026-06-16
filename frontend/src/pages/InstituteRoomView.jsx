@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import {
-    UsersIcon, DocumentTextIcon, ArrowLeftIcon, PlusIcon, MegaphoneIcon
+    UsersIcon, DocumentTextIcon, ArrowLeftIcon, PlusIcon, MegaphoneIcon, TrashIcon
 } from '@heroicons/react/24/outline';
 
 export default function InstituteRoomView() {
@@ -13,9 +13,15 @@ export default function InstituteRoomView() {
 
     // Add Test Modal State
     const [isAddTestModalOpen, setIsAddTestModalOpen] = useState(false);
-    const [availableTests, setAvailableTests] = useState([]);
-    const [selectedTestId, setSelectedTestId] = useState('');
+    const [testFormData, setTestFormData] = useState({
+        title: '',
+        topic: 'Mixed',
+        numberOfQuestions: 20,
+        duration: 30,
+        expiryDays: 7
+    });
     const [addingTest, setAddingTest] = useState(false);
+    const CATEGORIES = ["Mixed", "Quantitative", "Logical", "Verbal", "Data"];
 
     const fetchRoomDetails = async () => {
         try {
@@ -49,18 +55,50 @@ export default function InstituteRoomView() {
 
     const handleAddTest = async (e) => {
         e.preventDefault();
-        if (!selectedTestId.trim()) return;
+        if (!testFormData.title.trim()) return;
         setAddingTest(true);
         try {
-            await api.post(`/rooms/institute/${roomId}/tests`, { testId: selectedTestId.trim() });
+            const { data: user } = await api.get('/auth/me');
+            
+            const { data: test } = await api.post(`/institutes/${user._id}/create-test`, {
+                title: testFormData.title,
+                description: `Created for room ${room.name}`,
+                topic: testFormData.topic,
+                numberOfQuestions: parseInt(testFormData.numberOfQuestions, 10),
+                duration: parseInt(testFormData.duration, 10),
+                startTime: new Date(),
+                endTime: new Date(Date.now() + 86400000 * parseFloat(testFormData.expiryDays)),
+                type: 'test'
+            });
+
+            await api.post(`/rooms/institute/${roomId}/tests`, { testId: test._id });
+            
             setIsAddTestModalOpen(false);
-            setSelectedTestId('');
+            setTestFormData({
+                title: '',
+                topic: 'Mixed',
+                numberOfQuestions: 20,
+                duration: 30,
+                expiryDays: 7
+            });
             fetchRoomDetails();
         } catch (error) {
             console.error(error);
             alert(error.response?.data?.message || "Failed to add test");
         } finally {
             setAddingTest(false);
+        }
+    };
+
+    const handleDeleteRoom = async () => {
+        if (!window.confirm("Are you sure you want to permanently delete this room? This action cannot be undone.")) return;
+        
+        try {
+            await api.delete(`/rooms/institute/${roomId}`);
+            navigate('/institute-dashboard');
+        } catch (error) {
+            console.error(error);
+            alert("Failed to delete room");
         }
     };
 
@@ -86,11 +124,21 @@ export default function InstituteRoomView() {
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{room.name}</h1>
-                            <span className="bg-indigo-100 text-indigo-700 font-mono px-3 py-1 rounded-lg text-sm font-bold tracking-widest border border-indigo-200">
+                            <span className="bg-indigo-100 text-indigo-700 font-mono flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-bold tracking-widest border border-indigo-200">
                                 Code: {room.code}
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(room.code);
+                                        // Optional: Add a small toast or visual feedback here
+                                    }}
+                                    className="ml-2 w-5 h-5 opacity-50 hover:opacity-100 transition-opacity"
+                                    title="Copy Code"
+                                >
+                                    <DocumentTextIcon className="w-4 h-4" />
+                                </button>
                             </span>
                         </div>
-                        <p className="text-gray-500 dark:text-gray-400 max-w-2xl">{room.description || 'No description provided.'}</p>
+                        <p className="text-gray-500 dark:text-gray-400 max-w-2xl text-sm">{room.description || 'No description provided.'}</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="text-center px-4 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
@@ -101,6 +149,13 @@ export default function InstituteRoomView() {
                             <div className="text-2xl font-bold text-gray-900 dark:text-white">{room.tests.length}</div>
                             <div className="text-xs text-gray-500 uppercase font-semibold">Tests</div>
                         </div>
+                        <button 
+                            onClick={handleDeleteRoom}
+                            className="bg-red-50 hover:bg-red-100 text-red-600 rounded-xl px-4 py-2 border border-red-200 font-semibold text-sm transition-colors flex flex-col items-center justify-center gap-1 ml-2"
+                        >
+                            <TrashIcon className="w-5 h-5" />
+                            <span className="text-[10px] uppercase">Delete</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -181,31 +236,83 @@ export default function InstituteRoomView() {
 
             {/* Add Test Modal */}
             {isAddTestModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full overflow-hidden my-8">
                         <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-baseline">
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Assign Test to Room</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create & Assign Test</h2>
                         </div>
                         <form onSubmit={handleAddTest} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Test Database ID</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Test Title</label>
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
-                                    placeholder="e.g. 64b2...1234"
-                                    value={selectedTestId}
-                                    onChange={(e) => setSelectedTestId(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                                    placeholder="e.g. Weekly Assessment"
+                                    value={testFormData.title}
+                                    onChange={(e) => setTestFormData({...testFormData, title: e.target.value})}
                                 />
-                                <p className="text-xs mt-2 text-gray-500">
-                                    Tip: When you create a new Live Test, copy its MongoDB ID from the URL or database to paste here.
-                                </p>
                             </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic</label>
+                                    <select
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                                        value={testFormData.topic}
+                                        onChange={e => setTestFormData({ ...testFormData, topic: e.target.value })}
+                                        required
+                                    >
+                                        {CATEGORIES.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">No. of Questions</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        min="1"
+                                        max="100"
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                                        value={testFormData.numberOfQuestions}
+                                        onChange={e => setTestFormData({ ...testFormData, numberOfQuestions: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duration (mins)</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        min="1"
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                                        value={testFormData.duration}
+                                        onChange={e => setTestFormData({ ...testFormData, duration: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expiry (Days)</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        min="1"
+                                        step="0.5"
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                                        value={testFormData.expiryDays}
+                                        onChange={e => setTestFormData({ ...testFormData, expiryDays: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-xs mt-2 text-gray-500">
+                                The system will automatically pull random questions for this topic and assign the test to the room.
+                            </p>
+
                             <div className="pt-4 flex justify-end gap-3">
                                 <button type="button" onClick={() => setIsAddTestModalOpen(false)} className="px-5 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">Cancel</button>
                                 <button type="submit" disabled={addingTest} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-sm disabled:opacity-50 flex items-center gap-2">
                                     <PlusIcon className="w-4 h-4" />
-                                    {addingTest ? 'Adding...' : 'Assign Test'}
+                                    {addingTest ? 'Creating & Assigning...' : 'Assign Test'}
                                 </button>
                             </div>
                         </form>

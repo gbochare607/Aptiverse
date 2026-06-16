@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SignUp } from '@clerk/clerk-react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
@@ -9,6 +9,17 @@ export default function Register() {
     const [searchParams] = useSearchParams();
     const role = searchParams.get('role');
     const redirectUrl = role === 'institute' ? '/institute-dashboard' : '/dashboard';
+
+    useEffect(() => {
+        if (role) {
+            localStorage.setItem('requestedRole', role);
+            if (role === 'institute') {
+                localStorage.setItem('userRole', 'institute');
+            } else {
+                localStorage.setItem('userRole', 'student');
+            }
+        }
+    }, [role]);
 
     return (
         <div className="h-screen flex items-center justify-center bg-[#020617] relative overflow-hidden px-4">
@@ -45,7 +56,7 @@ export default function Register() {
                     <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/15 transition-all duration-500"></div>
 
                     <SignUp
-                        signInUrl={role === 'institute' ? "/login?role=institute" : "/login"}
+                        signInUrl={role === 'institute' ? "/login?role=institute" : "/login?role=student"}
                         forceRedirectUrl={redirectUrl}
                         appearance={{
                             layout: {
@@ -71,6 +82,18 @@ export default function Register() {
                             }
                         }}
                     />
+                </div>
+
+                <div className="mt-4 text-center">
+                    {role === 'institute' ? (
+                        <Link to="/register?role=student" className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+                            Are you a student? Register as Student
+                        </Link>
+                    ) : (
+                        <Link to="/register?role=institute" className="text-xs text-purple-400 hover:text-purple-300 font-semibold transition-colors">
+                            Are you an institute? Register as Institute
+                        </Link>
+                    )}
                 </div>
 
                 <p className="mt-3 text-center text-gray-600 text-[9px]">

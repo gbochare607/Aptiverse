@@ -19,70 +19,9 @@ import {
     SparklesIcon,
     RocketLaunchIcon
 } from '@heroicons/react/24/outline';
+import { allTopics, categoryMap } from '../constants/practice';
 
-const categoryMap = {
-    quantitative: {
-        name: 'Quantitative',
-        gradient: 'from-blue-500/20 to-cyan-500/20',
-        accent: 'text-blue-500',
-        bgAccent: 'bg-blue-500/10',
-        borderColor: 'border-blue-500/20',
-        icon: AcademicCapIcon
-    },
-    logical: {
-        name: 'Logical',
-        gradient: 'from-purple-500/20 to-pink-500/20',
-        accent: 'text-purple-500',
-        bgAccent: 'bg-purple-500/10',
-        borderColor: 'border-purple-500/20',
-        icon: LightBulbIcon
-    },
-    verbal: {
-        name: 'Verbal',
-        gradient: 'from-emerald-500/20 to-teal-500/20',
-        accent: 'text-emerald-500',
-        bgAccent: 'bg-emerald-500/10',
-        borderColor: 'border-emerald-500/20',
-        icon: ChatBubbleBottomCenterTextIcon
-    },
-    data: {
-        name: 'Data & DI',
-        gradient: 'from-orange-500/20 to-amber-500/20',
-        accent: 'text-orange-500',
-        bgAccent: 'bg-orange-500/10',
-        borderColor: 'border-orange-500/20',
-        icon: ChartPieIcon
-    },
-};
 
-const allTopics = [
-    { id: 'number-system', name: 'Number System', cat: 'quantitative' },
-    { id: 'percentages', name: 'Percentages', cat: 'quantitative' },
-    { id: 'profit-loss', name: 'Profit & Loss', cat: 'quantitative' },
-    { id: 'ratio-proportion', name: 'Ratio & Prop', cat: 'quantitative' },
-    { id: 'time-work', name: 'Time & Work', cat: 'quantitative' },
-    { id: 'time-distance', name: 'Time & Dist', cat: 'quantitative' },
-    { id: 'algebra', name: 'Algebra', cat: 'quantitative' },
-    { id: 'geometry', name: 'Geometry', cat: 'quantitative' },
-    { id: 'probability', name: 'Probability', cat: 'quantitative' },
-    { id: 'si-ci', name: 'SI & CI', cat: 'quantitative' },
-    { id: 'arithmetic', name: 'Arithmetic', cat: 'quantitative' },
-    { id: 'blood-relations', name: 'Blood Relations', cat: 'logical' },
-    { id: 'coding-decoding', name: 'Coding-Decoding', cat: 'logical' },
-    { id: 'syllogism', name: 'Syllogism', cat: 'logical' },
-    { id: 'series', name: 'Series', cat: 'logical' },
-    { id: 'seating', name: 'Seating Arrangement', cat: 'logical' },
-    { id: 'puzzles', name: 'Puzzles', cat: 'logical' },
-    { id: 'analogies', name: 'Analogies', cat: 'logical' },
-    { id: 'synonyms-antonyms', name: 'Syn/Antonyms', cat: 'verbal' },
-    { id: 'grammar', name: 'Grammar', cat: 'verbal' },
-    { id: 'cloze-test', name: 'Cloze Test', cat: 'verbal' },
-    { id: 'reading-comp', name: 'RC Passage', cat: 'verbal' },
-    { id: 'vocabulary', name: 'Vocabulary', cat: 'verbal' },
-    { id: 'data-interpretation', name: 'Data Interpretation', cat: 'data' },
-    { id: 'charts', name: 'Charts & Graphs', cat: 'data' },
-    { id: 'tables', name: 'Tabular Data', cat: 'data' },
-];
 
 export default function PracticeHub() {
     const [loading, setLoading] = useState(false);
@@ -458,6 +397,9 @@ export default function PracticeHub() {
                     </div>
                 </div>
             )}
+
+
         </div>
     );
 }
+

@@ -29,7 +29,8 @@ const navigation = [
 
 const testNavigation = [
     { name: 'Browse Tests', href: '/tests', icon: BookOpenIcon },
-    { name: 'My Attempts', href: '/tests/attempts', icon: ClockIcon },
+    { name: 'Library', href: '/library', icon: BookOpenIcon },
+    { name: 'Live Test Attempted', href: '/tests/attempts', icon: ClockIcon },
     { name: 'Performance', href: '/profile', icon: ChartBarIcon, state: { activeTab: 'performance' } },
     { name: 'Saved Questions', href: '/tests/saved', icon: BookmarkIcon },
     { name: 'Completed', href: '/tests/completed', icon: CheckBadgeIcon },
@@ -37,6 +38,7 @@ const testNavigation = [
 
 const competitionNavigation = [
     { name: 'All Challenges', href: '/competitions', icon: TrophyIcon },
+    { name: 'Library', href: '/library', icon: BookOpenIcon },
     { name: 'My Registrations', href: '/competitions/registered', icon: UserCircleIcon },
     { name: 'Leaderboards', href: '/competitions/leaderboards', icon: HashtagIcon },
     { name: 'Institutes', href: '/competitions/institutes', icon: BuildingOfficeIcon },
@@ -55,14 +57,16 @@ export default function Sidebar() {
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
 
-    // Determine which navigation to use
+    const clerkHasInstitute = localStorage.getItem('userRole') === 'institute';
+    const isInstitute = clerkHasInstitute;
+
     let currentNavigation = navigation;
-    if (location.pathname.startsWith('/tests')) {
+    if (isInstitute) {
+        currentNavigation = instituteNavigation;
+    } else if (location.pathname.startsWith('/tests')) {
         currentNavigation = testNavigation;
     } else if (location.pathname.startsWith('/competitions')) {
         currentNavigation = competitionNavigation;
-    } else if (location.pathname.startsWith('/institute-dashboard') || location.pathname.startsWith('/create-test')) {
-        currentNavigation = instituteNavigation;
     }
 
     const NavItem = ({ item }) => {

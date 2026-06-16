@@ -10,7 +10,8 @@ import {
     KeyIcon,
     ClockIcon,
     CheckCircleIcon,
-    XMarkIcon
+    XMarkIcon,
+    TrashIcon
 } from '@heroicons/react/24/outline';
 
 const KPICard = ({ title, value, icon: Icon, color }) => (
@@ -75,6 +76,12 @@ export default function InstituteDashboard() {
             const { data: userData } = await api.get('/auth/me', {
                 headers: { 'X-Requested-Role': 'institute' }
             });
+            
+            if (userData.approvalStatus === 'pending' || userData.approvalStatus === 'rejected') {
+                navigate('/institute-pending', { replace: true });
+                return;
+            }
+
             setUser(userData);
 
             const { data: roomsData } = await api.get('/rooms/institute');
@@ -95,15 +102,30 @@ export default function InstituteDashboard() {
         e.preventDefault();
         setRoomSubmitting(true);
         try {
-            await api.post('/rooms/institute', newRoomData);
+            const res = await api.post('/rooms/institute', newRoomData);
             setIsRoomModalOpen(false);
             setNewRoomData({ name: '', description: '' });
             fetchData(); // Refresh list
+            alert(`Room created successfully! Share this code with students: ${res.data.code}`);
         } catch (e) {
             console.error(e);
             alert("Failed to create room.");
         } finally {
             setRoomSubmitting(false);
+        }
+    };
+
+    const handleDeleteRoom = async (roomId, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!window.confirm("Are you sure you want to delete this test room?")) return;
+        
+        try {
+            await api.delete(`/rooms/institute/${roomId}`);
+            fetchData();
+        } catch (error) {
+            console.error(error);
+            alert("Failed to delete room");
         }
     };
 
@@ -187,10 +209,19 @@ export default function InstituteDashboard() {
                                     <li className="px-6 py-8 text-center text-gray-500 text-sm">No rooms created yet.</li>
                                 ) : (
                                     rooms.map(room => (
-                                        <Link to={`/institute/room/${room._id}`} key={room._id} className="block px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer">
+                                        <Link to={`/institute/room/${room._id}`} key={room._id} className="block px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer group">
                                             <div className="flex items-center justify-between mb-1">
                                                 <div className="font-semibold text-gray-900 dark:text-white">{room.name}</div>
-                                                <span className="text-xs font-mono bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md">{room.code}</span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xs font-mono bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md">{room.code}</span>
+                                                    <button 
+                                                        onClick={(e) => handleDeleteRoom(room._id, e)}
+                                                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        title="Delete Room"
+                                                    >
+                                                        <TrashIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                                                 <span>{room.students.length} Students</span>

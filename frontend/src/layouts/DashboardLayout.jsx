@@ -7,7 +7,10 @@ import { useUser } from '@clerk/clerk-react';
 export default function DashboardLayout() {
     const location = useLocation();
     const { user } = useUser();
-    const role = user?.publicMetadata?.role;
+    const role = (user?.publicMetadata?.role || user?.unsafeMetadata?.role || '').toLowerCase();
+
+    // Determine if institute globally
+    const isInstitute = role === 'institute' || localStorage.getItem('userRole') === 'institute';
 
     // Base hidden paths
     const hideSidebarPaths = [
@@ -22,8 +25,8 @@ export default function DashboardLayout() {
         '/create-test'
     ];
 
-    // If institute, also hide on tests and competitions
-    if (role === 'institute') {
+    // If institute, hide the generic student paths
+    if (isInstitute) {
         hideSidebarPaths.push('/competitions');
         hideSidebarPaths.push('/tests');
     }

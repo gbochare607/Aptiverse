@@ -421,9 +421,9 @@ exports.submitTest = async (req, res) => {
 // @route POST /institutes/:id/create-test
 exports.createTest = async (req, res) => {
     try {
-        const {
+        let {
             title, description, questions, duration, startTime, endTime,
-            type, bannerUrl, prizes, rules
+            type, bannerUrl, prizes, rules, topic, numberOfQuestions
         } = req.body;
 
         // Check institute role
@@ -434,15 +434,37 @@ exports.createTest = async (req, res) => {
         // Generate unique access code
         const accessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
+        // If institute specified a topic and number of questions, auto-generate the questions array
+        if (topic && numberOfQuestions) {
+            const numQs = parseInt(numberOfQuestions, 10) || 10;
+            let query = {};
+            
+            if (topic !== 'Mixed') {
+                const isMainCategory = ['Quantitative', 'Logical', 'Verbal', 'Data'].includes(topic);
+                if (isMainCategory) {
+                    query.category = topic;
+                } else {
+                    query.topics = topic;
+                }
+            }
+
+            const randomQuestions = await Question.aggregate([
+                { $match: query },
+                { $sample: { size: numQs } }
+            ]);
+
+            questions = randomQuestions.map(q => q._id);
+        }
+
         const test = await Test.create({
             title,
             description,
-            questions,
-            duration,
+            questions: questions || [],
+            duration: duration || 30,
             startTime,
             endTime,
             createdBy: req.user.id,
-            isPublic: true, // or false
+            isPublic: true, // or false depending on use case. Currently public/accessCode based
             type: type || 'test',
             bannerUrl,
             prizes,
@@ -495,6 +517,24 @@ exports.getCompetitions = async (req, res) => {
     }
 };
 
+// @desc Get all test attempts for the logged-in user
+// @route GET /tests/my-attempts
+exports.getUserAttempts = async (req, res) => {
+    try {
+        const attempts = await Attempt.find({ userId: req.user.id, type: 'test' })
+            .sort({ startTime: -1 })
+            .select('_id testId type status score percentage startTime endTime duration')
+            .populate({
+                path: 'testId',
+                select: 'title description bannerUrl'
+            });
+
+        res.json(attempts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc Get attempt details
 // @route GET /tests/attempts/:attemptId
 exports.getAttempt = async (req, res) => {
@@ -531,7 +571,11 @@ exports.getAttempt = async (req, res) => {
             questions: sanitizedQuestions,
             status: attempt.status,
             startTime: attempt.startTime,
-            result: resultData
+            result: resultData,
+            practiceTopic: attempt.practiceTopic,
+            practiceCategory: attempt.practiceCategory,
+            practiceCompany: attempt.practiceCompany,
+            practiceExam: attempt.practiceExam
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

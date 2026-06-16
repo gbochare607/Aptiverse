@@ -29,6 +29,7 @@ app.use('/api/attempts', require('./routes/attemptRoutes'));
 app.use('/api/institutes', require('./routes/instituteRoutes'));
 app.use('/api/activities', require('./routes/activityRoutes'));
 app.use('/api/study-plan', require('./routes/studyPlanRoutes'));
+app.use('/api/library', require('./routes/libraryRoutes'));
 app.use('/api', require('./routes/dashboardRoutes'));
 app.use('/api/rooms', require('./routes/roomRoutes'));
 
@@ -36,11 +37,32 @@ app.get('/', (req, res) => {
     res.send('API is running...');
 });
 
+const seedAdmin = async () => {
+    try {
+        const Admin = require('./models/Admin');
+        const adminEmail = 'gbochare482@gmail.com';
+        const exists = await Admin.findOne({ email: adminEmail });
+        if (!exists) {
+            console.log(`[Admin Seeding] Admin account not found. Creating default admin...`);
+            await Admin.create({
+                email: adminEmail,
+                password: 'admin@123'
+            });
+            console.log(`[Admin Seeding] Default admin account created successfully!`);
+        } else {
+            console.log(`[Admin Seeding] Admin account already exists.`);
+        }
+    } catch (err) {
+        console.error(`[Admin Seeding Error]:`, err.message);
+    }
+};
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
     try {
         await connectDB();
+        await seedAdmin();
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });

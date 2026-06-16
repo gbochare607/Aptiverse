@@ -16,8 +16,9 @@ export default function Tests() {
 
     useEffect(() => {
         const checkRole = async () => {
-            if (user?.publicMetadata?.role) {
-                setUserRole(user.publicMetadata.role);
+            const role = user?.publicMetadata?.role || user?.unsafeMetadata?.role;
+            if (role) {
+                setUserRole(role);
             } else {
                 try {
                     const token = await getToken();
@@ -129,7 +130,7 @@ export default function Tests() {
                         <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/30 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">
                             <RocketLaunchIcon className="w-6 h-6" />
                         </div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Join Test</h2>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Join Live Test</h2>
                     </div>
                     <form onSubmit={(e) => handleJoin(e, joinTestCode, 'test')} className="flex gap-2">
                         <input

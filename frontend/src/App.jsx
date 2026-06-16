@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import LandingPage from './pages/LandingPage';
@@ -21,16 +21,91 @@ import InstituteRoomView from './pages/InstituteRoomView';
 import InstituteTestRooms from './pages/InstituteTestRooms';
 import InstituteCompetitions from './pages/InstituteCompetitions';
 import StudentRoomView from './pages/StudentRoomView';
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import LiveTestHistory from './pages/LiveTestHistory';
+import Library from './pages/Library';
+
+// Admin Module Pages & Layout
+import AdminLayout from './layouts/AdminLayout';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminStudents from './pages/admin/AdminStudents';
+import AdminInstitutes from './pages/admin/AdminInstitutes';
+import AdminTests from './pages/admin/AdminTests';
+import InstitutePending from './pages/InstitutePending';
+
+import { SignedIn, SignedOut, RedirectToSignIn, useUser } from '@clerk/clerk-react';
+
+function InstituteRoute({ children }) {
+  const { user, isLoaded } = useUser();
+  
+  if (!isLoaded) return null;
+
+  const role = (user?.publicMetadata?.role || user?.unsafeMetadata?.role || '').toLowerCase();
+  const isInstitute = role === 'institute' || localStorage.getItem('userRole') === 'institute';
+
+  if (!isInstitute) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const adminToken = localStorage.getItem('adminToken');
+  
+  if (!adminToken) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
+}
+
+function SmartRedirect() {
+  const { user, isLoaded } = useUser();
+  
+  if (!isLoaded) return null;
+
+  const role = (user?.publicMetadata?.role || user?.unsafeMetadata?.role || '').toLowerCase();
+  const isInstitute = role === 'institute' || localStorage.getItem('userRole') === 'institute';
+
+  return <Navigate to={isInstitute ? "/institute-dashboard" : "/dashboard"} replace />;
+}
 
 function AppRoutes() {
+  const { user, isLoaded, isSignedIn } = useUser();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      const currentRole = (user.publicMetadata?.role || user.unsafeMetadata?.role || '').toLowerCase();
+      const requestedRole = localStorage.getItem('requestedRole');
+
+      if (!currentRole && requestedRole) {
+        console.log("Setting user role to requestedRole:", requestedRole);
+        user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            role: requestedRole
+          }
+        }).then(() => {
+          localStorage.setItem('userRole', requestedRole);
+          localStorage.removeItem('requestedRole');
+          console.log("Clerk unsafeMetadata role updated successfully.");
+        }).catch(err => {
+          console.error("Failed to update Clerk user metadata:", err);
+        });
+      } else if (currentRole) {
+        localStorage.setItem('userRole', currentRole);
+      }
+    }
+  }, [isLoaded, isSignedIn, user]);
+
   return (
     <Routes>
       {/* Public */}
       <Route path="/" element={
         <>
           <SignedIn>
-            <Navigate to="/dashboard" replace />
+            <SmartRedirect />
           </SignedIn>
           <SignedOut>
             <LandingPage />
@@ -42,7 +117,21 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Protected Routes */}
+      {/* Clerk Pending Review Page for Institutes */}
+      <Route path="/institute-pending" element={<InstitutePending />} />
+
+      {/* Admin Module Login Page (Clerk-independent) */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+
+      {/* Admin Module Pages Layout (Clerk-independent) */}
+      <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/students" element={<AdminStudents />} />
+        <Route path="/admin/institutes" element={<AdminInstitutes />} />
+        <Route path="/admin/tests" element={<AdminTests />} />
+      </Route>
+
+      {/* Protected Clerk-based Routes */}
       <Route
         path="/*"
         element={
@@ -55,17 +144,18 @@ function AppRoutes() {
                   <Route path="/competitions" element={<Competitions />} />
                   <Route path="/practice" element={<PracticeHub />} />
                   <Route path="/tests" element={<Tests />} />
+                  <Route path="/tests/attempts" element={<LiveTestHistory />} />
                   <Route path="/student/room/:roomId" element={<StudentRoomView />} />
                   <Route path="/performance" element={<Navigate to="/profile" state={{ activeTab: 'performance' }} replace />} />
                   <Route path="/planner" element={<Navigate to="/profile" state={{ activeTab: 'planner' }} replace />} />
                   <Route path="/analytics" element={<Navigate to="/profile" state={{ activeTab: 'performance' }} replace />} />
 
-                  {/* Institute Routes - Role check needed later */}
-                  <Route path="/institute-dashboard" element={<InstituteDashboard />} />
-                  <Route path="/institute/room/:roomId" element={<InstituteRoomView />} />
-                  <Route path="/institute/test-rooms" element={<InstituteTestRooms />} />
-                  <Route path="/institute/competitions" element={<InstituteCompetitions />} />
-                  <Route path="/create-test" element={<CreateTest />} />
+                  {/* Institute Routes */}
+                  <Route path="/institute-dashboard" element={<InstituteRoute><InstituteDashboard /></InstituteRoute>} />
+                  <Route path="/institute/room/:roomId" element={<InstituteRoute><InstituteRoomView /></InstituteRoute>} />
+                  <Route path="/institute/test-rooms" element={<InstituteRoute><InstituteTestRooms /></InstituteRoute>} />
+                  <Route path="/institute/competitions" element={<InstituteRoute><InstituteCompetitions /></InstituteRoute>} />
+                  <Route path="/create-test" element={<InstituteRoute><CreateTest /></InstituteRoute>} />
 
                   {/* Specialized Practice Sections (Inside Layout) */}
                   <Route path="/company-practice" element={<CompanyPractice />} />
@@ -74,6 +164,7 @@ function AppRoutes() {
 
                   {/* New Profile Menu Routes */}
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/library" element={<Library />} />
                   <Route path="/ai-mentor" element={<div>AI Mentor (Coming Soon)</div>} />
                   <Route path="/activity" element={<div>Recent Activity (Coming Soon)</div>} />
                 </Route>

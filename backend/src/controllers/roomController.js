@@ -24,6 +24,22 @@ exports.createRoom = async (req, res) => {
     }
 };
 
+// @desc Delete a Test Room
+// @route DELETE /rooms/institute/:id
+exports.deleteRoom = async (req, res) => {
+    try {
+        const room = await Room.findOneAndDelete({ _id: req.params.id, instituteId: req.user._id });
+
+        if (!room) {
+            return res.status(404).json({ message: 'Room not found or unauthorized' });
+        }
+
+        res.json({ message: 'Room deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc Get all rooms for an institute
 // @route GET /rooms/institute
 exports.getInstituteRooms = async (req, res) => {
